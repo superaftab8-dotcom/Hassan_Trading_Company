@@ -66,9 +66,10 @@
   .shop-name{font-weight:700;font-size:16.5px;}
   .badge{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
   .badge.pending{background:#FCEFD3;color:var(--mustard-dark);}
+  .badge.delivered{background:#DDEEE2;color:var(--green-dark);}
   .badge.fulfilled{background:#DDEEE2;color:var(--green-dark);}
   .item-list{font-size:14px;color:var(--ink-soft);margin:8px 0;line-height:1.8;}
-  .item-list .it{display:flex;justify-content:space-between;}
+  .item-list .it{display:flex;justify-content:space-between;align-items:center;}
   .item-list .it b{font-family:'JetBrains Mono',monospace;direction:ltr;}
   .order-total{display:flex;justify-content:space-between;font-weight:700;padding-top:8px;border-top:1px dashed #E1D6B0;margin-top:6px;}
   .order-total .amt{font-family:'JetBrains Mono',monospace;color:var(--green-dark);direction:ltr;}
@@ -88,6 +89,7 @@
   .edit-box{background:var(--paper);padding:10px;border-radius:8px;margin-top:6px;margin-bottom:12px;}
   .preview-img{width:60px;height:60px;border-radius:8px;object-fit:cover;margin-top:6px;border:1px solid #CCC;}
   .export-btns{display:flex;gap:8px;margin-top:12px;}
+  .cart-review-box{background:#F8F6EF;border:1.5px dashed var(--green);border-radius:10px;padding:12px;margin:12px 0;}
 </style>
 </head>
 <body>
@@ -215,6 +217,7 @@ let state = {
   salesTimeframe: 'daily',
   selectedShopForSheet: null,
   selectedRouteFilter: 'all',
+  selectedSalesmanFilter: 'all',
   isOwnerAuthenticated: false,
   ownerPin: '1234',
   editingProductId: null,
@@ -353,6 +356,10 @@ function updateCartTotalDisplay(){
   if(totalEl){
     totalEl.textContent = fmt(cartTotal());
   }
+  // Re-render to update salesman review box dynamically
+  if(state.view === 'salesman') {
+    renderSalesmanCartReview();
+  }
 }
 
 async function submitOrder(){
@@ -394,8 +401,18 @@ async function submitOrder(){
   sendOrderToGoogleSheets(order);
 
   state.cart = {};
-  showToast('آرڈر بھیج دیا گیا اور گوگل شیٹ پر اپڈیٹ ہو گیا ✓');
+  showToast('آرڈر کامیابی سے بھیج دیا گیا ✓');
   render();
+}
+
+async function updateOrderStatus(orderId, newStatus){
+  const order = state.orders.find(o => o.id === orderId);
+  if(order){
+    order.status = newStatus;
+    await saveData('orders', state.orders, true);
+    showToast(`آرڈر کا اسٹیٹس "${newStatus === 'delivered' ? 'ڈیلیورڈ' : 'پینڈنگ'}" کر دیا گیا ہے ✓`);
+    render();
+  }
 }
 
 function render(){
@@ -405,14 +422,18 @@ function render(){
   let html = `
     <div class="signboard">
       <h1>حسن ٹریڈنگ کمپنی</h1>
-      <p>اپنا آرڈر بک کریں • مالکان کے لیے مکمل سیلز سسٹم</p>
+      <p>اپنا آرڈر بک کریں • مالکان اور سیلز مین کے لیے مکمل سسٹم</p>
     </div>
     <div class="tabs">
       <div class="tab ${state.view==='shop'?'active':''}" onclick="switchView('shop')">🛒 دکاندار</div>
+      <div class="tab ${state.view==='salesman'?'active':''}" onclick="switchView('salesman')">👨‍💼 سیلز مین</div>
       <div class="tab ${state.view==='owner'?'active':''}" onclick="switchView('owner')">🔒 مالک (سیکیور)</div>
     </div>
   `;
-  html += state.view==='shop' ? renderShopView() : renderOwnerView();
+  if(state.view==='shop') html += renderShopView();
+  else if(state.view==='salesman') html += renderSalesmanView();
+  else html += renderOwnerView();
+
   app.innerHTML = html;
 }
 
@@ -544,6 +565,124 @@ function renderShopView(){
   return h;
 }
 
+/* Salesman View with Review, Edit, Delete & Final Submission */
+function renderSalesmanView(){
+  const selectedRouteObj = state.routes.find(r => r.id === state.selectedRouteFilter);
+  const filteredShops = state.selectedRouteFilter === 'all' 
+    ? state.shopkeepers 
+    : state.shopkeepers.filter(s => s.routeId === state.selectedRouteFilter);
+
+  let h = `
+    <div class="ledger-card">
+      <div class="section-title">👨‍💼 سیلز مین پورٹل (آرڈر ریویو و فائنل سبمیشن)</div>
+      
+      <label>سیلز مین کی شناخات منتخب کریں *</label>
+      <select onchange="state.profile.salesmanId=this.value; render();">
+        <option value="">-- اپنا نام منتخب کریں --</option>
+        ${state.salesmen.map(sm=>`<option value="${sm.id}" ${state.profile.salesmanId===sm.id?'selected':''}>${sm.name}</option>`).join('')}
+      </select>
+
+      <label>روٹ منتخب کریں:</label>
+      <div class="route-chip-list">
+        <div class="route-chip ${state.selectedRouteFilter==='all'?'active':''}" onclick="setRouteFilter('all')">تمام روٹس</div>
+        ${state.routes.map(r=>`
+          <div class="route-chip ${state.selectedRouteFilter===r.id?'active':''}" onclick="setRouteFilter('${r.id}')">${r.name}</div>
+        `).join('')}
+      </div>
+
+      <label>دکاندار منتخب کریں *</label>
+      <select id="salesmanShopSelect" onchange="onShopSelectChange(this.value)">
+        <option value="">-- دکان منتخب کریں --</option>
+        ${filteredShops.map(s=>`
+          <option value="${s.name}" ${state.profile.shopName===s.name?'selected':''}>${s.name} (${s.phone || 'بغیر نمبر'})</option>
+        `).join('')}
+      </select>
+      <input type="text" placeholder="یا دکان کا نام لکھیں" value="${state.profile.shopName}" onchange="state.profile.shopName=this.value">
+      <input type="tel" placeholder="دکاندار کا فون نمبر" value="${state.profile.phone}" onchange="state.profile.phone=this.value">
+    </div>
+
+    <!-- Review Selected Cart Items Box -->
+    <div class="ledger-card">
+      <div class="section-title">📝 منتخب کردہ آرڈر کا معائنہ (Review & Edit)</div>
+      <div id="salesmanCartReviewContainer">
+        ${renderSalesmanCartReviewHtml()}
+      </div>
+      <div class="cart-total"><div class="label">کل رقم:</div><div class="amt" id="cartTotalDisplay">${fmt(cartTotal())}</div></div>
+      <button class="btn btn-primary btn-block" style="margin-top:14px; font-size:16px;" onclick="submitOrder()">آرڈر فائنل سبمٹ کریں (Final Submission) ✓</button>
+    </div>
+
+    <div class="ledger-card">
+      <div class="section-title">آئٹمز لسٹ سے مزید کا انتخاب کریں</div>
+      <input type="text" class="search-box" placeholder="🔍 پروڈکٹ تلاش کریں..." value="${state.searchProdQuery}" oninput="filterShopProducts(this.value)">
+      <div id="shopProductsListContainer">
+  `;
+
+  state.products.forEach(p=>{
+    const qty = state.cart[p.id] || 0;
+    const sPrice = p.sellingPrice || p.price || 0;
+    const placeholderImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%238A8370' stroke-width='1.5'><rect x='3' y='3' width='18' height='18' rx='2'/><circle cx='8.5' cy='8.5' r='1.5'/><path d='M21 15l-5-5L5 21'/></svg>";
+    const isVisible = p.name.toLowerCase().includes(state.searchProdQuery.toLowerCase());
+
+    h += `
+      <div class="prod-row" data-name="${p.name.toLowerCase()}" style="display: ${isVisible ? 'flex' : 'none'};">
+        <img src="${p.image || placeholderImg}" class="prod-img" alt="${p.name}">
+        <div class="prod-name">
+          <div class="n">${p.name}</div>
+          <div class="u">فی ${p.unit}</div>
+        </div>
+        <div class="price">${fmt(sPrice)}</div>
+        <div class="stepper">
+          <button onclick="changeQty('${p.id}', -1)">−</button>
+          <input type="number" id="qty_${p.id}" min="0" value="${qty}" onchange="setQty('${p.id}', this.value)">
+          <button onclick="changeQty('${p.id}', 1)">+</button>
+        </div>
+      </div>
+    `;
+  });
+
+  h += `</div></div>`;
+  return h;
+}
+
+function renderSalesmanCartReviewHtml(){
+  const cartItemIds = Object.keys(state.cart).filter(id => state.cart[id] > 0);
+  if(cartItemIds.length === 0){
+    return `<div class="empty" style="padding:15px;">فی الحال کارٹ میں کوئی آئٹم موجود نہیں ہے۔ نیچے سے منتخب کریں۔</div>`;
+  }
+
+  let html = `<div class="cart-review-box">`;
+  cartItemIds.forEach(pid => {
+    const p = state.products.find(x => x.id === pid);
+    if(!p) return;
+    const qty = state.cart[pid];
+    const itemTotal = (p.sellingPrice || p.price || 0) * qty;
+
+    html += `
+      <div class="it" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #E0D6B8; padding-bottom:6px;">
+        <div>
+          <b>${p.name}</b> (${qty} ${p.unit})
+          <div style="font-size:12px; color:var(--muted);">${fmt(p.sellingPrice || p.price)} فی ${p.unit} = ${fmt(itemTotal)}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div class="stepper">
+            <button onclick="changeQty('${p.id}', -1)">−</button>
+            <input type="number" min="0" value="${qty}" onchange="setQty('${p.id}', this.value)" style="width:36px; padding:2px;">
+            <button onclick="changeQty('${p.id}', 1)">+</button>
+          </div>
+          <button class="btn btn-danger btn-sm" style="padding:4px 8px;" onclick="setQty('${p.id}', 0)">🗑️</button>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function renderSalesmanCartReview(){
+  const el = document.getElementById('salesmanCartReviewContainer');
+  if(el) el.innerHTML = renderSalesmanCartReviewHtml();
+}
+
 function filterShopkeeperDropdown(query){
   state.searchShopkeeperDropdownQuery = query;
   const dropdown = document.getElementById('shopSelectDropdown');
@@ -606,18 +745,22 @@ function renderSalesAnalytics(){
   const now = new Date();
   let filteredOrders = state.orders;
 
+  if(state.selectedSalesmanFilter !== 'all'){
+    filteredOrders = filteredOrders.filter(o => o.salesmanId === state.selectedSalesmanFilter);
+  }
+
   if(state.salesTimeframe === 'daily'){
-    filteredOrders = state.orders.filter(o => new Date(o.createdAt).toDateString() === now.toDateString());
+    filteredOrders = filteredOrders.filter(o => new Date(o.createdAt).toDateString() === now.toDateString());
   } else if(state.salesTimeframe === 'weekly'){
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    filteredOrders = state.orders.filter(o => new Date(o.createdAt) >= weekAgo);
+    filteredOrders = filteredOrders.filter(o => new Date(o.createdAt) >= weekAgo);
   } else if(state.salesTimeframe === 'monthly'){
-    filteredOrders = state.orders.filter(o => {
+    filteredOrders = filteredOrders.filter(o => {
       const d = new Date(o.createdAt);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
   } else if(state.salesTimeframe === 'yearly'){
-    filteredOrders = state.orders.filter(o => new Date(o.createdAt).getFullYear() === now.getFullYear());
+    filteredOrders = filteredOrders.filter(o => new Date(o.createdAt).getFullYear() === now.getFullYear());
   }
 
   const totalSales = filteredOrders.reduce((acc, o) => acc + o.total, 0);
@@ -635,6 +778,13 @@ function renderSalesAnalytics(){
   return `
     <div class="ledger-card" id="salesReportPrintable">
       <div class="section-title">سیلز اور خالص منافع رپورٹ</div>
+      
+      <label>👨‍💼 سیلز مین کے لحاظ سے فلٹر کریں:</label>
+      <select onchange="state.selectedSalesmanFilter=this.value; render();" style="margin-bottom:12px;">
+        <option value="all" ${state.selectedSalesmanFilter==='all'?'selected':''}>-- تمام سیلز مین (All Salesmen) --</option>
+        ${state.salesmen.map(sm=>`<option value="${sm.id}" ${state.selectedSalesmanFilter===sm.id?'selected':''}>${sm.name}</option>`).join('')}
+      </select>
+
       <div class="tabs">
         <div class="tab ${state.salesTimeframe==='daily'?'active':''}" onclick="setSalesTimeframe('daily')">روزانہ</div>
         <div class="tab ${state.salesTimeframe==='weekly'?'active':''}" onclick="setSalesTimeframe('weekly')">ہفتہ وار</div>
@@ -724,7 +874,7 @@ function renderSalesmenTab(){
     </div>
 
     <div class="ledger-card">
-      <div class="section-title">سیلز مین کی فہرست اور ریکارڈ</div>
+      <div class="section-title">سیلز مین کی فہرست اور کارکردگی</div>
       <input type="text" class="search-box" placeholder="🔍 سیلز مین تلاش کریں..." value="${state.searchSalesmanQuery}" oninput="filterSalesmen(this.value)">
       <div id="salesmenListContainer">
   `;
@@ -768,7 +918,7 @@ function filterSalesmen(query){
   }
 }
 
-/* Routes Management Tab with EDIT & DELETE */
+/* Routes Management Tab */
 function renderRoutesTab(){
   let h = `
     <div class="ledger-card">
@@ -851,7 +1001,7 @@ async function deleteRoute(id){
   }
 }
 
-/* Shops Management Tab with EDIT & DELETE */
+/* Shops Management Tab */
 function renderShopsTab(){
   if(state.selectedShopForSheet){
     return renderShopOrderSheet(state.selectedShopForSheet);
@@ -1006,11 +1156,12 @@ function renderShopOrderSheet(shopName){
     h += `<div class="ledger-card"><div class="empty">اس دکاندار کا کوئی ریکارڈ نہیں ہے۔</div></div>`;
   } else {
     shopOrders.forEach(o => {
+      const isDelivered = o.status === 'delivered';
       h += `
         <div class="order-card">
           <div class="order-top">
             <div>تاریخ: ${new Date(o.createdAt).toLocaleDateString('ur-PK')}</div>
-            <div class="badge ${o.status}">${o.status==='pending'?'پینڈنگ':'مکمل'}</div>
+            <div class="badge ${isDelivered ? 'delivered' : 'pending'}">${isDelivered ? 'ڈلیورڈ (Delivered)' : 'پینڈنگ (Pending)'}</div>
           </div>
           <div class="item-list">
             ${o.items.map(it => `<div class="it"><span>${it.name} × ${it.qty} ${it.unit}</span><b>${fmt(it.price * it.qty)}</b></div>`).join('')}
@@ -1151,25 +1302,52 @@ function handleImageUpload(e, type){
   reader.readAsDataURL(file);
 }
 
+/* Orders Tab with Delivered Option and Salesman Filter */
 function renderOrdersTab(){
+  let displayOrders = state.orders;
+  if(state.selectedSalesmanFilter !== 'all'){
+    displayOrders = displayOrders.filter(o => o.salesmanId === state.selectedSalesmanFilter);
+  }
+
   return `
     <div class="ledger-card">
       <div class="section-title">تمام آرڈرز ریکارڈ</div>
+      
+      <label>👨‍💼 سیلز مین فلٹر:</label>
+      <select onchange="state.selectedSalesmanFilter=this.value; render();" style="margin-bottom:12px;">
+        <option value="all" ${state.selectedSalesmanFilter==='all'?'selected':''}>-- تمام سیلز مین (All Salesmen) --</option>
+        ${state.salesmen.map(sm=>`<option value="${sm.id}" ${state.selectedSalesmanFilter===sm.id?'selected':''}>${sm.name}</option>`).join('')}
+      </select>
+
       <div class="export-btns" style="margin-bottom:12px;">
         <button class="btn btn-excel btn-sm" onclick="exportSalesToExcel()">📊 تمام آرڈرز Excel فائل میں حاصل کریں</button>
       </div>
-      ${state.orders.map(o => {
+
+      ${displayOrders.length === 0 ? '<div class="empty">کوئی آرڈر نہیں ملا۔</div>' : ''}
+
+      ${displayOrders.map(o => {
         const sm = state.salesmen.find(s => s.id === o.salesmanId);
+        const isDelivered = o.status === 'delivered';
+
         return `
         <div class="order-card">
           <div class="order-top">
             <div class="shop-name">${o.shopName} ${sm ? `<small style="color:var(--muted); font-weight:normal;">(سیلز مین: ${sm.name})</small>` : ''}</div>
-            <div class="badge ${o.status}">${o.status}</div>
+            <div class="badge ${isDelivered ? 'delivered' : 'pending'}">${isDelivered ? 'ڈلیورڈ (Delivered)' : 'پینڈنگ (Pending)'}</div>
           </div>
           <div class="item-list">
             ${o.items.map(it => `<div class="it"><span>${it.name} × ${it.qty}</span><b>${fmt(it.price * it.qty)}</b></div>`).join('')}
           </div>
           <div class="order-total"><span>ٹوٹل</span><span class="amt">${fmt(o.total)}</span></div>
+          
+          <div style="margin-top:10px; display:flex; gap:8px;">
+            <button class="btn btn-sm ${isDelivered ? 'btn-ghost' : 'btn-primary'}" onclick="updateOrderStatus('${o.id}', 'delivered')">
+              🚚 Delivered مارک کریں
+            </button>
+            <button class="btn btn-sm ${!isDelivered ? 'btn-ghost' : 'btn-mustard'}" onclick="updateOrderStatus('${o.id}', 'pending')">
+              ⏳ Pending مارک کریں
+            </button>
+          </div>
         </div>
       `;
       }).join('')}
