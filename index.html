@@ -97,7 +97,7 @@
 
 <script>
 // Updated Live Synchronized Google Web App URL
-const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzRDyOyvhnj2AN9U734Nss7VN1hV0o-zC37P-B41_W4qa3B3cR-VsnFFOKdm6YOsd_vZg/exec";
+const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwxR7dwInQRvWe8lEcKge5Bup1MKhxea1wfQsELJHbzdMwEwxCdH7eNHB_RLyKLyBSkUA/exec";
   
 const defaultProductsList = [
   { "id": "1", "name": "Andy Red/Yellow", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
@@ -294,7 +294,6 @@ async function loadAll() {
   render();
 }
 
-// Updated saveData function (Fixed CORS & Headers)
 async function saveData(key, val, shared=true){
   localStorage.setItem(key, JSON.stringify(val));
   if(!shared) return;
@@ -302,7 +301,6 @@ async function saveData(key, val, shared=true){
   try {
     await fetch(GOOGLE_SHEET_WEB_APP_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ action: "saveData", key: key, data: val }),
       redirect: "follow"
     });
@@ -311,7 +309,6 @@ async function saveData(key, val, shared=true){
   }
 }
 
-// Updated sendOrderToGoogleSheets function (Fixed CORS & Headers)
 async function sendOrderToGoogleSheets(orderData) {
   if (!GOOGLE_SHEET_WEB_APP_URL) return;
   
@@ -338,7 +335,6 @@ async function sendOrderToGoogleSheets(orderData) {
 
       await fetch(GOOGLE_SHEET_WEB_APP_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload),
         redirect: "follow"
       });
