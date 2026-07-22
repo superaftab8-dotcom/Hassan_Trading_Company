@@ -97,9 +97,8 @@
 
 <script>
 // Live Synchronized Google Web App URL
-const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx66M7kEZXp9RsuSQ6y2AT0CG7Bithbbvc2wUdm2HnbAl83tvAzmRoJcy-A20rc39Yntg/exec";
-
-// Default empty products list
+const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycby--cAOnc0LXF9yA3VJLZVExvjinobjtilBFjranUanRHWhU9e3DxRyGqyNan1b7CvuFA/exec";
+  
 const defaultProductsList = [
   { "id": "1", "name": "Andy Red/Yellow", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
   { "id": "2", "name": "Baksua", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
@@ -239,13 +238,31 @@ function sortProductsAlphabetically(productsArray){
   return productsArray.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
 }
 
-async function loadAll(){
+async function loadAll() {
   let sharedData = {};
   try {
-    const response = await fetch(`${GOOGLE_SHEET_WEB_APP_URL}?action=getData`);
-    if(response.ok) {
-      sharedData = await response.json();
+    // redirect: "follow" add karna zaroori hai Google Apps Script redirects ke liye
+    const response = await fetch(`${GOOGLE_SHEET_WEB_APP_URL}?action=getData`, {
+      method: "GET",
+      redirect: "follow"
+    });
+
+    if (response.ok) {
+      const text = await response.text(); // Pehle text me lein
+      try {
+        sharedData = JSON.parse(text); // Phir JSON parse karein
+        console.log("Data loaded successfully:", sharedData);
+      } catch (e) {
+        console.error("JSON parse error! Apps Script ne JSON ke bajaye ye bheja:", text);
+      }
+    } else {
+      console.error("HTTP Error Status:", response.status);
     }
+  } catch (error) {
+    console.error("Fetch request fail ho gayi:", error);
+  }
+  return sharedData;
+}
   } catch(e) {
     console.error('Shared data load failed', e);
   }
