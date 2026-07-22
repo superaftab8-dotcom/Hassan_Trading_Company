@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@500;700&family=Noto+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
+<!-- Excel & PDF Export Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -14,279 +15,962 @@
   :root{
     --paper:#F3ECD8; --paper-dark:#EAE1C6; --ink:#23301F; --ink-soft:#4A5442;
     --rule-red:#A63D40; --green:#2F6B4F; --green-dark:#234F3B;
-    --mustard:#D9A441; --mustard-dark:#B9822B;
-    --font-ur:'Noto Nastaliq Urdu', 'Noto Sans Arabic', serif;
-    --font-num:'JetBrains Mono', monospace;
+    --mustard:#D9A441; --mustard-dark:#B9822B; --white:#FFFDF7; --muted:#8A8370; --danger:#A63D40;
+    --blue:#2B6CB0;
   }
-  *{ box-sizing:border-box; margin:0; padding:0; font-family:var(--font-ur); }
-  body{ background:var(--paper); color:var(--ink); line-height:1.6; padding:10px; }
-  .container{ max-width:1100px; margin:0 auto; background:var(--paper); border:2px solid var(--ink); padding:15px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
-  header{ text-align:center; border-bottom:3px double var(--ink); padding-bottom:10px; margin-bottom:15px; }
-  header h1{ font-size:28px; color:var(--green-dark); margin-bottom:5px; }
-  header p{ font-size:14px; color:var(--ink-soft); }
-  .nav-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:15px; border-bottom:1px solid var(--ink-soft); pb:10px; }
-  .tab-btn{ background:var(--paper-dark); border:1px solid var(--ink); padding:6px 12px; cursor:pointer; font-size:14px; border-radius:4px; font-weight:bold; }
-  .tab-btn.active{ background:var(--green); color:#fff; border-color:var(--green-dark); }
-  .section{ display:none; }
-  .section.active{ display:block; }
-  .card{ background:#fff; border:1px solid var(--ink-soft); padding:12px; margin-bottom:15px; border-radius:6px; }
-  .form-group{ margin-bottom:10px; }
-  label{ display:block; font-size:13px; margin-bottom:4px; font-weight:bold; }
-  input, select, textarea{ width:100%; padding:8px; border:1px solid var(--ink-soft); border-radius:4px; font-size:14px; background:#fafafa; }
-  .btn{ background:var(--green); color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:14px; }
-  .btn:hover{ background:var(--green-dark); }
-  .btn-danger{ background:var(--rule-red); }
-  table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:13px; }
-  th, td{ border:1px solid var(--ink-soft); padding:6px 8px; text-align:center; }
-  th{ background:var(--paper-dark); }
-  .sync-status{ font-size:12px; padding:4px 8px; border-radius:4px; display:inline-block; margin-top:5px; }
-  .sync-online{ background:#d4edda; color:#155724; }
-  .sync-loading{ background:#fff3cd; color:#856404; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:radial-gradient(circle at 85% 8%, rgba(255,255,255,0.35), transparent 40%),var(--paper);color:var(--ink);font-family:'Noto Sans Arabic',sans-serif;min-height:100vh;}
+  .wrap{max-width:640px;margin:0 auto;padding:18px 16px 60px;}
+  .signboard{background:var(--green-dark);color:var(--white);border-radius:14px;padding:20px 20px 18px;position:relative;overflow:hidden;box-shadow:0 6px 0 rgba(0,0,0,0.12);margin-bottom:16px;}
+  .signboard::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 14px);}
+  .signboard h1{font-family:'Noto Nastaliq Urdu',serif;font-weight:700;font-size:32px;margin:0 0 8px;line-height:1.6;position:relative;}
+  .signboard p{margin:0;color:#D9CFA8;font-size:14px;position:relative;}
+  .tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+  .tab{flex:1;min-width:75px;text-align:center;padding:10px 6px;background:var(--paper-dark);border:2px solid transparent;border-radius:10px 10px 4px 4px;font-weight:600;font-size:13px;color:var(--ink-soft);cursor:pointer;transition:all .15s ease;}
+  .tab.active{background:var(--white);border-color:var(--green);color:var(--green-dark);box-shadow:0 3px 0 rgba(0,0,0,0.06);}
+  .ledger-card{background:var(--white);border-radius:10px;padding:16px 22px 16px 16px;margin-bottom:14px;position:relative;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+  .ledger-card::before{content:"";position:absolute;right:12px;top:10px;bottom:10px;width:2px;background:var(--rule-red);opacity:0.55;}
+  .section-title{font-family:'Noto Nastaliq Urdu',serif;font-weight:700;font-size:22px;color:var(--green-dark);margin:0 0 12px;}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;font-weight:600;}
+  input[type=text], input[type=tel], input[type=number], input[type=password], select, input[type=file]{width:100%;padding:10px 11px;border:1.5px solid #DED4B4;border-radius:8px;font-family:'Noto Sans Arabic',sans-serif;font-size:15px;background:var(--white);color:var(--ink);margin-bottom:12px;}
+  .search-box{border-color:var(--green) !important; background:#F8F6EF !important; font-weight:600;}
+  input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:9px;padding:11px 16px;font-family:'Noto Sans Arabic',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:transform .1s ease;}
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--green);color:var(--white);}
+  .btn-primary:hover{background:var(--green-dark);}
+  .btn-ghost{background:transparent;color:var(--green-dark);border:1.5px solid var(--green);}
+  .btn-danger{background:transparent;color:var(--danger);border:1.5px solid var(--danger);}
+  .btn-mustard{background:var(--mustard);color:#3A2A08;}
+  .btn-excel{background:#1D6F42;color:#FFF;}
+  .btn-pdf{background:#B30000;color:#FFF;}
+  .btn-block{width:100%;}
+  .btn-sm{padding:6px 10px;font-size:12.5px;}
+  .prod-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px dashed #E1D6B0;}
+  .prod-row:last-child{border-bottom:none;}
+  .prod-img{width:48px;height:48px;border-radius:6px;object-fit:cover;border:1px solid #DED4B4;background:#EEE;}
+  .prod-name{flex:1;min-width:0;}
+  .prod-name .n{font-weight:600;font-size:15.5px;}
+  .prod-name .u{font-size:12.5px;color:var(--muted);}
+  .price-details{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .price{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13.5px;color:var(--ink-soft);min-width:72px;text-align:center;direction:ltr;}
+  .profit-badge{font-size:11px;background:#DDEEE2;color:var(--green-dark);padding:2px 6px;border-radius:4px;font-weight:bold;display:inline-block;margin-top:2px;}
+  .stepper{display:flex;align-items:center;gap:6px;direction:ltr;}
+  .stepper button{width:30px;height:30px;border-radius:7px;border:1.5px solid var(--green);background:var(--white);color:var(--green-dark);font-size:17px;font-weight:700;cursor:pointer;line-height:1;}
+  .stepper input{width:44px;text-align:center;padding:6px 2px;margin:0;font-family:'JetBrains Mono',monospace;font-weight:700;}
+  .cart-total{display:flex;justify-content:space-between;align-items:baseline;padding-top:12px;margin-top:6px;border-top:2px solid var(--rule-red);}
+  .cart-total .amt{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--green-dark);direction:ltr;}
+  .empty{text-align:center;padding:30px 14px;color:var(--muted);font-size:14.5px;}
+  .order-card{background:var(--white);border-radius:10px;padding:14px 16px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,0.06);position:relative;overflow:hidden;}
+  .order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+  .shop-name{font-weight:700;font-size:16.5px;}
+  .badge{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+  .badge.pending{background:#FCEFD3;color:var(--mustard-dark);}
+  .badge.delivered{background:#DDEEE2;color:var(--green-dark);}
+  .item-list{font-size:14px;color:var(--ink-soft);margin:8px 0;line-height:1.8;}
+  .item-list .it{display:flex;justify-content:space-between;align-items:center;}
+  .item-list .it b{font-family:'JetBrains Mono',monospace;direction:ltr;}
+  .order-total{display:flex;justify-content:space-between;font-weight:700;padding-top:8px;border-top:1px dashed #E1D6B0;margin-top:6px;}
+  .order-total .amt{font-family:'JetBrains Mono',monospace;color:var(--green-dark);direction:ltr;}
+  .row{display:flex;gap:10px;}
+  .row > *{flex:1;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--green-dark);color:var(--white);padding:12px 20px;border-radius:10px;font-weight:600;font-size:14.5px;box-shadow:0 6px 20px rgba(0,0,0,0.25);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+  .summary-box{background:var(--paper);border-radius:9px;padding:10px;text-align:center;}
+  .summary-box .num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--green-dark);direction:ltr;}
+  .summary-box .lbl{font-size:11px;color:var(--muted);margin-top:2px;}
+  .shop-item-card{background:var(--paper);padding:12px;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid #DED4B4;}
+  .route-chip-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px;}
+  .route-chip{padding:6px 14px;background:var(--paper-dark);border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid #DED4B4;}
+  .route-chip.active{background:var(--green);color:var(--white);border-color:var(--green);}
+  .schedule-box{background:#E8F0EA;border-right:4px solid var(--green);padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:13.5px;}
+  .edit-box{background:var(--paper);padding:10px;border-radius:8px;margin-top:6px;margin-bottom:12px;}
+  .preview-img{width:60px;height:60px;border-radius:8px;object-fit:cover;margin-top:6px;border:1px solid #CCC;}
+  .export-btns{display:flex;gap:8px;margin-top:12px;}
+  .cart-review-box{background:#F8F6EF;border:1.5px dashed var(--green);border-radius:10px;padding:12px;margin:12px 0;}
 </style>
 </head>
 <body>
-
-<div class="container">
-  <header>
-    <h1>حسن ٹریڈنگ کمپنی</h1>
-    <p>ایڈوانس گلوبل ڈیٹا بیس ڈیش بورڈ</p>
-    <div id="syncBadge" class="sync-status sync-loading">ڈیٹا سنک ہو رہا ہے...</div>
-  </header>
-
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('productsTab')">پروڈکٹس</button>
-    <button class="tab-btn" onclick="switchTab('shopkeepersTab')">دکاندار / روٹس</button>
-    <button class="tab-btn" onclick="switchTab('ordersTab')">آرڈرز</button>
-  </div>
-
-  <div id="productsTab" class="section active">
-    <div class="card">
-      <h3>نئی پروڈکٹ شامل کریں</h3>
-      <div class="form-group">
-        <label>پروڈکٹ کا نام:</label>
-        <input type="text" id="npName" placeholder="نام درج کریں">
-      </div>
-      <div class="form-group">
-        <label>یونٹ (مثلاً: پیس / کارٹن):</label>
-        <input type="text" id="npUnit" placeholder="پیس">
-      </div>
-      <div class="form-group">
-        <label>خریداری قیمت (Buying Price):</label>
-        <input type="number" id="npBuyingPrice" value="0">
-      </div>
-      <div class="form-group">
-        <label>فروخت قیمت (Selling Price):</label>
-        <input type="number" id="npSellingPrice" value="0">
-      </div>
-      <button class="btn" onclick="addProduct()">پروڈکٹ سیو کریں</button>
-    </div>
-
-    <div class="card">
-      <h3>تمام پروڈکٹس کی فہرست</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>آئی ڈی</th>
-            <th>نام</th>
-            <th>یونٹ</th>
-            <th>خریداری قیمت</th>
-            <th>فروخت قیمت</th>
-            <th>ایکشن</th>
-          </tr>
-        </thead>
-        <tbody id="productsTableBody">
-          </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="shopkeepersTab" class="section">
-    <div class="card">
-      <h3>نیا روٹ شامل کریں</h3>
-      <div class="form-group">
-        <input type="text" id="newRouteName" placeholder="روٹ کا نام">
-      </div>
-      <button class="btn" onclick="addRoute()">روٹ شامل کریں</button>
-    </div>
-
-    <div class="card">
-      <h3>نیا دکاندار شامل کریں</h3>
-      <div class="form-group">
-        <label>دکان کا نام:</label>
-        <input type="text" id="skName">
-      </div>
-      <div class="form-group">
-        <label>فون نمبر:</label>
-        <input type="text" id="skPhone">
-      </div>
-      <div class="form-group">
-        <label>روٹ منتخب کریں:</label>
-        <select id="skRouteSelect"></select>
-      </div>
-      <button class="btn" onclick="addShopkeeper()">دکاندار سیو کریں</button>
-    </div>
-  </div>
-
-  <div id="ordersTab" class="section">
-    <div class="card">
-      <h3>آرڈرز کی ہسٹری</h3>
-      <div id="ordersList">ڈیٹا لوڈ ہو رہا ہے...</div>
-    </div>
-  </div>
-</div>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-  // Google Apps Script Web App Deployment URL
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxaw7C38weJrUsO_nVueOgyP5AFPZRR8S097iYF8eLtvKMj8hbHc8-J0J7QHiMLA8VTQ/exec";
+// ڈیفالٹ تصویر پلیس ہولڈر (تصویر غائب ہونے سے بچانے کے لیے)
+const DEFAULT_IMG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%232F6B4F' stroke-width='1.5'><rect x='3' y='3' width='18' height='18' rx='2'/><circle cx='8.5' cy='8.5' r='1.5'/><path d='M21 15l-5-5L5 21'/></svg>";
 
-  let state = {
-    products: [],
-    shopkeepers: [],
-    routes: [],
-    orders: []
+const defaultProductsList = [
+  { "id": "1", "name": "Andy Red/Yellow", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "2", "name": "Baksua", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "3", "name": "Balichan", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "4", "name": "Blade 7 clock", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "5", "name": "Blade RK", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "6", "name": "Blade Tez", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "7", "name": "Blade Treat", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "8", "name": "Bleach 3D X", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "9", "name": "Bleach Fesh n Joy Haldi/ Peach", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "10", "name": "Bleach Parle", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "11", "name": "Boll Pen Piano Sky/Clipper", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "12", "name": "Brush Dr-John Bacha", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "13", "name": "Brush Dr-John Medium", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "14", "name": "Brush Medicare Bacha", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "15", "name": "Brush Medicare Medium/ MR Clean", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "16", "name": "Brush Potato Medium", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "17", "name": "Care Sabun", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "18", "name": "Cell Power Plus", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "19", "name": "Cell Toshiba", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "20", "name": "Cell Ultra /Crown", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "21", "name": "China Namak 10 wala", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "22", "name": "China Namak 20 wala", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "23", "name": "Colgate Regular", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "24", "name": "Copy", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "28", "name": "Cream Bleach Care/ Peach", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "29", "name": "Dasta / Ring Wala", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "31", "name": "Disposible Glass", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "32", "name": "Feedar Kidu", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "33", "name": "Feedar Mochiku", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "34", "name": "Garam Misala Pissa hua", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "35", "name": "Garam Misala Sabit Great", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "36", "name": "Gillet Blue 2", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "37", "name": "Gmsa Elfi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "38", "name": "Gubare Panda", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "39", "name": "Hair Color Reetha", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "40", "name": "Hair Color Samsol", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "41", "name": "Hair Color Wajee", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "42", "name": "Hair Remove Cream Care Pink", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "43", "name": "Hair Remove Cream Care Yellow", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "44", "name": "Hair Remove Cream Look Me", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "45", "name": "Ispaghol Hashmi", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "46", "name": "Ispaghol Power Plus", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "47", "name": "Joshanda Qarshi", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "48", "name": "Kaali Dori", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "49", "name": "Kali Mirch Pissi hui", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "50", "name": "Lastic Small/Medium", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "51", "name": "Letter", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "52", "name": "Letter Filler", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "53", "name": "Machine Oil Singer", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "54", "name": "Machis Kite /Tanga", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "55", "name": "Magic Depoxy Gmsa", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "56", "name": "Magic Depoxy Steel", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "57", "name": "Mask 2 ply", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "58", "name": "Mask 3 ply", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "59", "name": "Mehandi Al Jannat", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "60", "name": "Mehandi Al Saudia", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "61", "name": "Mehandi Ke Keshan", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "62", "name": "Mombatti", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "63", "name": "Nalki Shaheen", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "64", "name": "Nipple Care", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "65", "name": "Nipple Potato", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "66", "name": "Nipple Shield", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "67", "name": "Pak Sani Plaster Kapre wala", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "68", "name": "Palish Orignal Al-Noor Traders", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "69", "name": "Pamper Flexi", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "71", "name": "Pamper Royal", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "73", "name": "Pocket Tissue Everday", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "74", "name": "Sabun Rex Fruti", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "75", "name": "Salution Tape", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "76", "name": "Samad Bond 100 Sale", "unit": "ٹیوب", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "77", "name": "Samad Bond 150 Sale", "unit": "ٹیوب", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "78", "name": "Shoe Brush Plastic", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "79", "name": "Shoe Brush Wooden", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "80", "name": "Sogo Thunder Jalebi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "81", "name": "Steel Subhi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "85", "name": "Sultan Tail Regular 125ML", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "86", "name": "Sultan Tail Regular 250ML", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "87", "name": "Sunny Plass Umbrella", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "88", "name": "Taizab", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "89", "name": "Tape Osaka", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "90", "name": "Tape Tuff", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "91", "name": "Tenis Ball Normal/CA /MM Copy", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "92", "name": "Tigher Poweder Botle", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "93", "name": "Tigher Poweder Sache", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "94", "name": "Tissue box", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "95", "name": "Tissue Roll", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "96", "name": "Treat Hygiene Pouch", "unit": "پاؤچ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "97", "name": "Treat Trim", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "99", "name": "Turkey Sabun", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
+  { "id": "100", "name": "Universal Safty box", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" }
+];
+
+let state = {
+  view: 'shop',
+  products: [],
+  orders: [],
+  shopkeepers: [],
+  routes: [],
+  salesmen: [],
+  cart: {},
+  profile: { shopName:'', phone:'', routeId:'', salesmanId:'' },
+  loading: true,
+  ownerTab: 'sales', 
+  salesTimeframe: 'daily',
+  selectedShopForSheet: null,
+  selectedRouteFilter: 'all',
+  selectedSalesmanFilter: 'all',
+  isOwnerAuthenticated: false,
+  ownerPin: '1234',
+  editingProductId: null,
+  editingShopId: null,
+  editingRouteId: null,
+  newProdBase64: '',
+  editProdBase64: {},
+  searchProdQuery: '',
+  searchSalesmanQuery: '',
+  searchShopQuery: '',
+  searchOwnerProdQuery: '',
+  searchShopkeeperDropdownQuery: ''
+};
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function sortProductsAlphabetically(productsArray){
+  return productsArray.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+}
+
+function loadAll(){
+  const readSavedValue = (key, fallback) => {
+    try {
+      const localValue = localStorage.getItem(key);
+      return (localValue === null || localValue === "undefined") ? fallback : JSON.parse(localValue);
+    } catch(e) {
+      return fallback;
+    }
   };
 
-  function uid(){
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-  }
+  state.products = readSavedValue('products', defaultProductsList);
+  if(!state.products || state.products.length === 0) state.products = defaultProductsList;
 
-  function updateSyncBadge(status, text) {
-    const badge = document.getElementById('syncBadge');
-    badge.className = `sync-status ${status}`;
-    badge.innerText = text;
-  }
+  state.products = state.products.map(p => ({
+    ...p,
+    buyingPrice: p.buyingPrice ?? 0,
+    sellingPrice: p.sellingPrice ?? (p.price || 0),
+    image: p.image || DEFAULT_IMG
+  }));
+  
+  state.products = sortProductsAlphabetically(state.products);
+  
+  state.orders = readSavedValue('orders', []);
+  state.shopkeepers = readSavedValue('shopkeepers', []);
+  state.routes = readSavedValue('routes', []);
+  state.salesmen = readSavedValue('salesmen', []);
+  state.ownerPin = readSavedValue('ownerPin', '1234');
+  state.profile = readSavedValue('profile', { shopName:'', phone:'', routeId:'', salesmanId:'' });
+  
+  state.loading = false;
+  render();
+}
 
-  // Global Data Fetch from Google Sheets / Drive API
-  async function loadGlobalData() {
-    updateSyncBadge('sync-loading', 'گلوبل ڈیٹا سنک ہو رہا ہے...');
-    try {
-      const res = await fetch(SCRIPT_URL + "?action=getData");
-      if (res.ok) {
-        const data = await res.json();
-        if (data) {
-          state.products = data.products || [];
-          state.shopkeepers = data.shopkeepers || [];
-          state.routes = data.routes || [];
-          state.orders = data.orders || [];
-        }
-        updateSyncBadge('sync-online', 'گلوبل ڈیٹا آن لائن ہے ✓');
-        render();
-      } else {
-        throw new Error('API Error');
-      }
-    } catch (e) {
-      console.warn("Global Fetch Failed. Using local cache fallback.", e);
-      updateSyncBadge('sync-loading', 'لوکل موڈ (آن لائن سنکنگ جاری...)');
-      const local = localStorage.getItem('hassan_trading_state');
-      if (local) state = JSON.parse(local);
-      render();
-    }
-  }
+function saveData(key, val){
+  localStorage.setItem(key, JSON.stringify(val));
+}
 
-  // Global Sync to Google Sheets / Drive API
-  async function syncToDrive(key, value) {
-    localStorage.setItem('hassan_trading_state', JSON.stringify(state));
-    updateSyncBadge('sync-loading', 'تغیرات بھیجے جا رہے ہیں...');
-    try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'saveData', key: key, value: value, fullState: state })
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+function fmt(n){ return 'Rs ' + Number(n||0).toLocaleString('en-IN'); }
+
+function cartTotal(){
+  let total = 0;
+  for(const pid in state.cart){
+    const qty = state.cart[pid];
+    const prod = state.products.find(x=>x.id===pid);
+    if(prod && qty>0) total += (prod.sellingPrice || prod.price || 0) * qty;
+  }
+  return total;
+}
+
+function updateCartTotalDisplay(){
+  const totalEl = document.getElementById('cartTotalDisplay');
+  if(totalEl){
+    totalEl.textContent = fmt(cartTotal());
+  }
+  if(state.view === 'salesman') {
+    renderSalesmanCartReview();
+  }
+}
+
+function submitOrder(){
+  const items = [];
+  for(const pid in state.cart){
+    const qty = state.cart[pid];
+    const prod = state.products.find(x=>x.id===pid);
+    if(prod && qty>0) {
+      items.push({ 
+        productId: prod.id, 
+        name: prod.name, 
+        unit: prod.unit, 
+        buyingPrice: prod.buyingPrice || 0,
+        price: prod.sellingPrice || prod.price || 0, 
+        qty 
       });
-      updateSyncBadge('sync-online', 'تمام آلات پر محفوظ ہو گیا ✓');
-    } catch (e) {
-      console.error("Save failed:", e);
-      updateSyncBadge('sync-loading', 'آف لائن سیو (دوبارہ کوشش کی جائے گی)');
     }
   }
+  if(items.length===0){ showToast('پہلے کچھ آئٹمز منتخب کریں'); return; }
+  if(!state.profile.shopName.trim()){ showToast('دکان کا نام منتخب یا درج کریں'); return; }
 
-  function switchTab(tabId) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    event.target.classList.add('active');
-  }
+  const order = {
+    id: uid(), 
+    shopName: state.profile.shopName.trim(), 
+    phone: state.profile.phone.trim(),
+    routeId: state.profile.routeId || '',
+    salesmanId: state.profile.salesmanId || '',
+    items, 
+    total: items.reduce((s,i)=> s + i.price*i.qty, 0),
+    totalCost: items.reduce((s,i)=> s + i.buyingPrice*i.qty, 0),
+    status: 'pending', 
+    createdAt: Date.now(),
+  };
 
-  async function addProduct() {
-    const name = document.getElementById('npName').value.trim();
-    const unit = document.getElementById('npUnit').value.trim();
-    const buyingPrice = Number(document.getElementById('npBuyingPrice').value) || 0;
-    const sellingPrice = Number(document.getElementById('npSellingPrice').value) || 0;
+  state.orders.unshift(order);
+  saveData('orders', state.orders);
+  saveData('profile', state.profile);
 
-    if (!name) return alert('نام درج کرنا ضروری ہے');
+  state.cart = {};
+  showToast('آرڈر کامیابی سے محفوظ کر لیا گیا ✓');
+  render();
+}
 
-    const newProd = {
-      id: uid(),
-      name,
-      unit: unit || 'پیس',
-      buyingPrice,
-      sellingPrice
-    };
-
-    state.products.push(newProd);
+function updateOrderStatus(orderId, newStatus){
+  const order = state.orders.find(o => o.id === orderId);
+  if(order){
+    order.status = newStatus;
+    saveData('orders', state.orders);
+    showToast(`آرڈر کا اسٹیٹس "${newStatus === 'delivered' ? 'ڈیلیورڈ' : 'پینڈنگ'}" کر دیا گیا ہے ✓`);
     render();
-    await syncToDrive('products', state.products);
-    
-    document.getElementById('npName').value = '';
-    document.getElementById('npBuyingPrice').value = '0';
-    document.getElementById('npSellingPrice').value = '0';
   }
+}
 
-  async function deleteProduct(id) {
-    if (confirm('کیا آپ اس پروڈکٹ کو حذف کرنا چاہتے ہیں؟')) {
-      state.products = state.products.filter(p => p.id !== id);
-      render();
-      await syncToDrive('products', state.products);
+function render(){
+  const app = document.getElementById('app');
+  if(state.loading){ app.innerHTML = `<div class="empty">لوڈ ہو رہا ہے...</div>`; return; }
+
+  let html = `
+    <div class="signboard">
+      <h1>حسن ٹریڈنگ کمپنی</h1>
+      <p>اپنا آرڈر بک کریں • مالکان اور سیلز مین کے لیے مکمل سسٹم</p>
+    </div>
+    <div class="tabs">
+      <div class="tab ${state.view==='shop'?'active':''}" onclick="switchView('shop')">🛒 دکاندار</div>
+      <div class="tab ${state.view==='salesman'?'active':''}" onclick="switchView('salesman')">👨‍💼 سیلز مین</div>
+      <div class="tab ${state.view==='owner'?'active':''}" onclick="switchView('owner')">🔒 مالک (سیکیور)</div>
+    </div>
+  `;
+  if(state.view==='shop') html += renderShopView();
+  else if(state.view==='salesman') html += renderSalesmanView();
+  else html += renderOwnerView();
+
+  app.innerHTML = html;
+}
+
+function switchView(v){
+  if(v === 'owner' && !state.isOwnerAuthenticated){
+    const inputPin = prompt("مالک کے صفحے کے لیے پن (PIN) درج کریں:");
+    if(inputPin === state.ownerPin){
+      state.isOwnerAuthenticated = true;
+      state.view = v;
+    } else {
+      alert("غلط پن نمبر! آپ کی رسائی مسترد کر دی گئی ہے۔");
+      return;
     }
+  } else {
+    state.view = v;
   }
+  render();
+}
 
-  async function addRoute() {
-    const name = document.getElementById('newRouteName').value.trim();
-    if (!name) return alert('روٹ کا نام لکھیں');
-    state.routes.push({ id: uid(), name });
-    render();
-    await syncToDrive('routes', state.routes);
-    document.getElementById('newRouteName').value = '';
-  }
+function renderShopView(){
+  const selectedRouteObj = state.routes.find(r => r.id === state.selectedRouteFilter);
+  const filteredShops = state.selectedRouteFilter === 'all' 
+    ? state.shopkeepers 
+    : state.shopkeepers.filter(s => s.routeId === state.selectedRouteFilter);
 
-  async function addShopkeeper() {
-    const name = document.getElementById('skName').value.trim();
-    const phone = document.getElementById('skPhone').value.trim();
-    const routeId = document.getElementById('skRouteSelect').value;
-    if (!name || !routeId) return alert('نام اور روٹ ضروری ہے');
+  let h = `
+    <div class="ledger-card">
+      <div class="section-title">نیا روٹ شامل کریں</div>
+      <input type="text" id="shopRouteName" placeholder="روٹ / علاقہ کا نام (مثلاً: اندرون شہر)">
+      <input type="text" id="shopRouteSchedule" placeholder="شیڈول (مثلاً: پیر اور جمعرات - 10 بجے)">
+      <button class="btn btn-primary btn-block" onclick="addRoute('shopRouteName', 'shopRouteSchedule')">نیا روٹ ایڈ کریں</button>
+    </div>
 
-    state.shopkeepers.push({ id: uid(), name, phone, routeId });
-    render();
-    await syncToDrive('shopkeepers', state.shopkeepers);
-    document.getElementById('skName').value = '';
-    document.getElementById('skPhone').value = '';
-  }
+    <div class="ledger-card">
+      <div class="section-title">نیا دکاندار شامل کریں</div>
+      <label>روٹ منتخب کریں *</label>
+      <select id="shopAddShopRoute">
+        <option value="">-- روٹ منتخب کریں --</option>
+        ${state.routes.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}
+      </select>
+      <input type="text" id="shopAddShopName" placeholder="دکان کا نام">
+      <input type="tel" id="shopAddShopPhone" placeholder="موبائل نمبر">
+      <button class="btn btn-primary btn-block" onclick="addShopkeeper('shopAddShopName', 'shopAddShopPhone', 'shopAddShopRoute')">دکاندار ایڈ کریں</button>
+    </div>
 
-  function render() {
-    // Render Products Table
-    const pBody = document.getElementById('productsTableBody');
-    pBody.innerHTML = state.products.map(p => `
-      <tr>
-        <td>${p.id}</td>
-        <td>${p.name}</td>
-        <td>${p.unit}</td>
-        <td>${p.buyingPrice}</td>
-        <td>${p.sellingPrice}</td>
-        <td><button class="btn btn-danger" onclick="deleteProduct('${p.id}')">حذف</button></td>
-      </tr>
-    `).join('') || '<tr><td colspan="6">کوئی پروڈکٹ موجود نہیں</td></tr>';
+    <div class="ledger-card">
+      <div class="section-title">آرڈر بکنگ Profile</div>
+      
+      <label>روٹ فلٹر کریں:</label>
+      <div class="route-chip-list">
+        <div class="route-chip ${state.selectedRouteFilter==='all'?'active':''}" onclick="setRouteFilter('all')">تمام روٹس</div>
+        ${state.routes.map(r=>`
+          <div class="route-chip ${state.selectedRouteFilter===r.id?'active':''}" onclick="setRouteFilter('${r.id}')">${r.name}</div>
+        `).join('')}
+      </div>
 
-    // Render Routes Select
-    const rSelect = document.getElementById('skRouteSelect');
-    rSelect.innerHTML = state.routes.map(r => `<option value="${r.id}">${r.name}</option>`).join('') || '<option value="">کوئی روٹ نہیں</option>';
-  }
+      ${selectedRouteObj ? `
+        <div class="schedule-box">
+          <b>📅 روٹ شیڈول (${selectedRouteObj.name}):</b> ${selectedRouteObj.schedule || 'کوئی شیڈول طے نہیں'}
+        </div>
+      ` : ''}
 
-  // Initial Load & Automatic Real-Time Polling every 10 seconds
-  window.addEventListener('DOMContentLoaded', () => {
-    loadGlobalData();
-    setInterval(loadGlobalData, 10000); // 10 Sec Sync Loop for dynamic updates across devices
+      <label>دکان منتخب کریں *</label>
+      <select id="shopSelectDropdown" onchange="onShopSelectChange(this.value)">
+        <option value="">-- دکان منتخب کریں --</option>
+        ${filteredShops.map(s=>`
+          <option value="${s.name}" ${state.profile.shopName===s.name?'selected':''}>${s.name} (${s.phone || 'بغیر نمبر'})</option>
+        `).join('')}
+      </select>
+      
+      <input type="text" placeholder="یا نیا نام درج کریں" value="${state.profile.shopName}" onchange="state.profile.shopName=this.value">
+      
+      <label>سیلز مین منتخب کریں</label>
+      <select onchange="state.profile.salesmanId=this.value">
+        <option value="">-- متعلقہ سیلز مین --</option>
+        ${state.salesmen.map(sm=>`<option value="${sm.id}" ${state.profile.salesmanId===sm.id?'selected':''}>${sm.name}</option>`).join('')}
+      </select>
+
+      <label>موبائل نمبر</label>
+      <input type="tel" placeholder="03xx-xxxxxxx" value="${state.profile.phone}" onchange="state.profile.phone=this.value">
+    </div>
+  `;
+
+  h += `
+    <div class="ledger-card">
+      <div class="section-title">پروڈکٹس منتخب کریں</div>
+      <input type="text" id="shopSearchInput" class="search-box" placeholder="🔍 پروڈکٹ تلاش کریں (Search Product)..." value="${state.searchProdQuery}" oninput="filterShopProducts(this.value)">
+      <div id="shopProductsListContainer">
+  `;
+
+  state.products.forEach(p=>{
+    const qty = state.cart[p.id] || 0;
+    const sPrice = p.sellingPrice || p.price || 0;
+    const isVisible = p.name.toLowerCase().includes(state.searchProdQuery.toLowerCase());
+
+    h += `
+      <div class="prod-row" data-name="${p.name.toLowerCase()}" style="display: ${isVisible ? 'flex' : 'none'};">
+        <img src="${p.image || DEFAULT_IMG}" class="prod-img" alt="${p.name}">
+        <div class="prod-name">
+          <div class="n">${p.name}</div>
+          <div class="u">فی ${p.unit}</div>
+        </div>
+        <div class="price">${fmt(sPrice)}</div>
+        <div class="stepper">
+          <button onclick="changeQty('${p.id}', -1)">−</button>
+          <input type="number" id="qty_${p.id}" min="0" value="${qty}" onchange="setQty('${p.id}', this.value)">
+          <button onclick="changeQty('${p.id}', 1)">+</button>
+        </div>
+      </div>
+    `;
   });
+
+  h += `
+      </div>
+      <div class="cart-total"><div class="label">کل رقم:</div><div class="amt" id="cartTotalDisplay">${fmt(cartTotal())}</div></div>
+      <div style="margin-top:14px;"><button class="btn btn-primary btn-block" onclick="submitOrder()">آرڈر بھیجیں ✓</button></div>
+    </div>
+  `;
+  return h;
+}
+
+function renderSalesmanView(){
+  const filteredShops = state.selectedRouteFilter === 'all' 
+    ? state.shopkeepers 
+    : state.shopkeepers.filter(s => s.routeId === state.selectedRouteFilter);
+
+  let h = `
+    <div class="ledger-card">
+      <div class="section-title">👨‍💼 سیلز مین پورٹل (آرڈر ریویو و فائنل سبمیشن)</div>
+      
+      <label>سیلز مین کی شناخت منتخب کریں *</label>
+      <select onchange="state.profile.salesmanId=this.value; render();">
+        <option value="">-- اپنا نام منتخب کریں --</option>
+        ${state.salesmen.map(sm=>`<option value="${sm.id}" ${state.profile.salesmanId===sm.id?'selected':''}>${sm.name}</option>`).join('')}
+      </select>
+
+      <label>روٹ منتخب کریں:</label>
+      <div class="route-chip-list">
+        <div class="route-chip ${state.selectedRouteFilter==='all'?'active':''}" onclick="setRouteFilter('all')">تمام روٹس</div>
+        ${state.routes.map(r=>`
+          <div class="route-chip ${state.selectedRouteFilter===r.id?'active':''}" onclick="setRouteFilter('${r.id}')">${r.name}</div>
+        `).join('')}
+      </div>
+
+      <label>دکاندار منتخب کریں *</label>
+      <select id="salesmanShopSelect" onchange="onShopSelectChange(this.value)">
+        <option value="">-- دکان منتخب کریں --</option>
+        ${filteredShops.map(s=>`
+          <option value="${s.name}" ${state.profile.shopName===s.name?'selected':''}>${s.name} (${s.phone || 'بغیر نمبر'})</option>
+        `).join('')}
+      </select>
+      <input type="text" placeholder="یا دکان کا نام لکھیں" value="${state.profile.shopName}" onchange="state.profile.shopName=this.value">
+      <input type="tel" placeholder="دکاندار کا فون نمبر" value="${state.profile.phone}" onchange="state.profile.phone=this.value">
+    </div>
+
+    <div class="ledger-card">
+      <div class="section-title">📝 منتخب کردہ آرڈر کا معائنہ (Review & Edit)</div>
+      <div id="salesmanCartReviewContainer">
+        ${renderSalesmanCartReviewHtml()}
+      </div>
+      <div class="cart-total"><div class="label">کل رقم:</div><div class="amt" id="cartTotalDisplay">${fmt(cartTotal())}</div></div>
+      <button class="btn btn-primary btn-block" style="margin-top:14px; font-size:16px;" onclick="submitOrder()">آرڈر فائنل سبمٹ کریں ✓</button>
+    </div>
+
+    <div class="ledger-card">
+      <div class="section-title">آئٹمز لسٹ سے مزید کا انتخاب کریں</div>
+      <input type="text" class="search-box" placeholder="🔍 پروڈکٹ تلاش کریں..." value="${state.searchProdQuery}" oninput="filterShopProducts(this.value)">
+      <div id="shopProductsListContainer">
+  `;
+
+  state.products.forEach(p=>{
+    const qty = state.cart[p.id] || 0;
+    const sPrice = p.sellingPrice || p.price || 0;
+    const isVisible = p.name.toLowerCase().includes(state.searchProdQuery.toLowerCase());
+
+    h += `
+      <div class="prod-row" data-name="${p.name.toLowerCase()}" style="display: ${isVisible ? 'flex' : 'none'};">
+        <img src="${p.image || DEFAULT_IMG}" class="prod-img" alt="${p.name}">
+        <div class="prod-name">
+          <div class="n">${p.name}</div>
+          <div class="u">فی ${p.unit}</div>
+        </div>
+        <div class="price">${fmt(sPrice)}</div>
+        <div class="stepper">
+          <button onclick="changeQty('${p.id}', -1)">−</button>
+          <input type="number" id="qty_${p.id}" min="0" value="${qty}" onchange="setQty('${p.id}', this.value)">
+          <button onclick="changeQty('${p.id}', 1)">+</button>
+        </div>
+      </div>
+    `;
+  });
+
+  h += `</div></div>`;
+  return h;
+}
+
+function renderSalesmanCartReviewHtml(){
+  const cartItemIds = Object.keys(state.cart).filter(id => state.cart[id] > 0);
+  if(cartItemIds.length === 0){
+    return `<div class="empty" style="padding:15px;">فی الحال کارٹ میں کوئی آئٹم موجود نہیں ہے۔ نیچے سے منتخب کریں۔</div>`;
+  }
+
+  let html = `<div class="cart-review-box">`;
+  cartItemIds.forEach(pid => {
+    const p = state.products.find(x => x.id === pid);
+    if(!p) return;
+    const qty = state.cart[pid];
+    const itemTotal = (p.sellingPrice || p.price || 0) * qty;
+
+    html += `
+      <div class="it" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid #E0D6B8; padding-bottom:6px;">
+        <div>
+          <b>${p.name}</b> (${qty} ${p.unit})
+          <div style="font-size:12px; color:var(--muted);">${fmt(p.sellingPrice || p.price)} فی ${p.unit} = ${fmt(itemTotal)}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div class="stepper">
+            <button onclick="changeQty('${p.id}', -1)">−</button>
+            <input type="number" min="0" value="${qty}" onchange="setQty('${p.id}', this.value)" style="width:36px; padding:2px;">
+            <button onclick="changeQty('${p.id}', 1)">+</button>
+          </div>
+          <button class="btn btn-danger btn-sm" style="padding:4px 8px;" onclick="setQty('${p.id}', 0)">🗑️</button>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function renderSalesmanCartReview(){
+  const el = document.getElementById('salesmanCartReviewContainer');
+  if(el) el.innerHTML = renderSalesmanCartReviewHtml();
+}
+
+function filterShopProducts(query){
+  state.searchProdQuery = query;
+  const container = document.getElementById('shopProductsListContainer');
+  if(!container) return;
+  const rows = container.getElementsByClassName('prod-row');
+  const q = query.toLowerCase().trim();
+  for(let row of rows){
+    const name = row.getAttribute('data-name') || '';
+    row.style.display = name.includes(q) ? 'flex' : 'none';
+  }
+}
+
+function onShopSelectChange(val){
+  state.profile.shopName = val;
+  const sk = state.shopkeepers.find(s=>s.name === val);
+  if(sk){
+    state.profile.phone = sk.phone || '';
+    state.profile.routeId = sk.routeId || '';
+  }
+  render();
+}
+
+function renderOwnerView(){
+  let h = `
+    <div class="tabs" style="margin-bottom:12px;">
+      <div class="tab ${state.ownerTab==='sales'?'active':''}" onclick="setOwnerTab('sales')">📊 سیلز و منافع</div>
+      <div class="tab ${state.ownerTab==='salesmen'?'active':''}" onclick="setOwnerTab('salesmen')">👨‍💼 سیلز مین</div>
+      <div class="tab ${state.ownerTab==='routes'?'active':''}" onclick="setOwnerTab('routes')">🗺️ روٹس</div>
+      <div class="tab ${state.ownerTab==='shops'?'active':''}" onclick="setOwnerTab('shops')">🏪 دکاندار</div>
+      <div class="tab ${state.ownerTab==='products'?'active':''}" onclick="setOwnerTab('products')">📦 پروڈکٹس</div>
+      <div class="tab ${state.ownerTab==='orders'?'active':''}" onclick="setOwnerTab('orders')">🧾 آرڈرز</div>
+      <div class="tab ${state.ownerTab==='settings'?'active':''}" onclick="setOwnerTab('settings')">⚙️ پاسورڈ</div>
+    </div>
+  `;
+
+  if(state.ownerTab==='sales') return h + renderSalesAnalytics();
+  if(state.ownerTab==='salesmen') return h + renderSalesmenTab();
+  if(state.ownerTab==='routes') return h + renderRoutesTab();
+  if(state.ownerTab==='shops') return h + renderShopsTab();
+  if(state.ownerTab==='products') return h + renderProductsTab();
+  if(state.ownerTab==='orders') return h + renderOrdersTab();
+  if(state.ownerTab==='settings') return h + renderSettingsTab();
+}
+
+function renderSalesAnalytics(){
+  const now = new Date();
+  let filteredOrders = state.orders;
+
+  if(state.selectedSalesmanFilter !== 'all'){
+    filteredOrders = filteredOrders.filter(o => o.salesmanId === state.selectedSalesmanFilter);
+  }
+
+  const totalSales = filteredOrders.reduce((acc, o) => acc + o.total, 0);
+  const totalCost = filteredOrders.reduce((acc, o) => acc + (o.totalCost || 0), 0);
+  const netProfit = totalSales - totalCost;
+
+  return `
+    <div class="ledger-card" id="salesReportPrintable">
+      <div class="section-title">سیلز اور خالص منافع رپورٹ</div>
+      <div class="summary-grid">
+        <div class="summary-box">
+          <div class="num">${filteredOrders.length}</div>
+          <div class="lbl">کل آرڈرز</div>
+        </div>
+        <div class="summary-box">
+          <div class="num">${fmt(totalSales)}</div>
+          <div class="lbl">مجموعی سیلز</div>
+        </div>
+        <div class="summary-box" style="background:#E8F0EA;">
+          <div class="num" style="color:var(--green-dark);">${fmt(netProfit)}</div>
+          <div class="lbl">خالص منافع</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSalesmenTab(){
+  let h = `
+    <div class="ledger-card">
+      <div class="section-title">نیا سیلز مین شامل کریں</div>
+      <input type="text" id="smName" placeholder="سیلز مین کا نام">
+      <input type="tel" id="smPhone" placeholder="موبائل نمبر">
+      <select id="smRoute">
+        <option value="">-- روٹ منتخب کریں --</option>
+        ${state.routes.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}
+      </select>
+      <button class="btn btn-primary btn-block" onclick="addSalesman()">سیلز مین شامل کریں</button>
+    </div>
+
+    <div class="ledger-card">
+      <div class="section-title">سیلز مین کی فہرست</div>
+  `;
+
+  if(state.salesmen.length === 0){
+    h += `<div class="empty">کوئی سیلز مین نہیں ملا۔</div>`;
+  } else {
+    state.salesmen.forEach(sm => {
+      const smRoute = state.routes.find(r => r.id === sm.routeId);
+      h += `
+        <div class="shop-item-card">
+          <div>
+            <strong>👨‍💼 ${sm.name}</strong><br>
+            <small style="color:var(--muted);">📱 ${sm.phone || 'کوئی نمبر نہیں'} | 🗺️ روٹ: ${smRoute ? smRoute.name : 'کوئی روٹ نہیں'}</small>
+          </div>
+        </div>
+      `;
+    });
+  }
+  h += `</div>`;
+  return h;
+}
+
+function renderRoutesTab(){
+  let h = `
+    <div class="ledger-card">
+      <div class="section-title">نیا روٹ شامل کریں</div>
+      <input type="text" id="ownerRouteName" placeholder="روٹ کا نام">
+      <input type="text" id="ownerRouteSchedule" placeholder="شیڈول (مثلاً: منگل اور جمعہ)">
+      <button class="btn btn-primary btn-block" onclick="addRoute('ownerRouteName', 'ownerRouteSchedule')">روٹ شامل کریں</button>
+    </div>
+
+    <div class="ledger-card">
+      <div class="section-title">موجودہ روٹس</div>
+  `;
+
+  if(state.routes.length === 0){
+    h += `<div class="empty">کوئی روٹ شامل نہیں ہے۔</div>`;
+  } else {
+    state.routes.forEach(r => {
+      h += `
+        <div class="shop-item-card">
+          <div>
+            <strong>🗺️ ${r.name}</strong><br>
+            <small style="color:var(--muted);">📅 شیڈول: ${r.schedule || 'کوئی شیڈول نہیں'}</small>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteRoute('${r.id}')">حذف</button>
+        </div>
+      `;
+    });
+  }
+  h += `</div>`;
+  return h;
+}
+
+function renderShopsTab(){
+  let h = `
+    <div class="ledger-card">
+      <div class="section-title">نیا دکاندار شامل کریں</div>
+      <select id="ownerAddShopRoute">
+        <option value="">-- روٹ منتخب کریں --</option>
+        ${state.routes.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}
+      </select>
+      <input type="text" id="ownerAddShopName" placeholder="دکان کا نام">
+      <input type="tel" id="ownerAddShopPhone" placeholder="فون نمبر">
+      <button class="btn btn-primary btn-block" onclick="addShopkeeper('ownerAddShopName', 'ownerAddShopPhone', 'ownerAddShopRoute')">دکاندار شامل کریں</button>
+    </div>
+
+    <div class="ledger-card">
+      <div class="section-title">دکانداروں کی فہرست</div>
+  `;
+
+  if(state.shopkeepers.length === 0){
+    h += `<div class="empty">کوئی دکاندار نہیں ملا۔</div>`;
+  } else {
+    state.shopkeepers.forEach(sk => {
+      const matchedRoute = state.routes.find(r => r.id === sk.routeId);
+      h += `
+        <div class="shop-item-card">
+          <div>
+            <strong>🏪 ${sk.name}</strong> <small style="color:var(--green-dark);">(${matchedRoute ? matchedRoute.name : 'بغیر روٹ'})</small><br>
+            <small style="color:var(--muted);">📱 ${sk.phone || 'کوئی نمبر نہیں'}</small>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteShopkeeper('${sk.id}')">حذف</button>
+        </div>
+      `;
+    });
+  }
+  h += `</div>`;
+  return h;
+}
+
+function renderProductsTab(){
+  return `
+    <div class="ledger-card">
+      <div class="section-title">نیا پروڈکٹ شامل کریں</div>
+      <input type="text" id="npName" placeholder="پروڈکٹ کا نام">
+      <input type="text" id="npUnit" placeholder="یونٹ (مثلاً: پیس/پیکٹ/ڈبہ)">
+      <div class="row">
+        <div><input type="number" id="npBuyingPrice" placeholder="خرید قیمت (Rs)"></div>
+        <div><input type="number" id="npSellingPrice" placeholder="فروخت قیمت (Rs)"></div>
+      </div>
+      <label>پروڈکٹ کی تصویر:</label>
+      <input type="file" accept="image/*" onchange="handleImageUpload(event, 'new')">
+      ${state.newProdBase64 ? `<img src="${state.newProdBase64}" class="preview-img">` : ''}
+      <button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="addProduct()">پروڈکٹ ایڈ کریں</button>
+    </div>
+    
+    <div class="ledger-card">
+      <div class="section-title">موجودہ پروڈکٹس (${state.products.length})</div>
+      ${state.products.map(p => `
+        <div class="prod-row" style="display:flex; justify-content:space-between; align-items:center;">
+          <img src="${p.image || DEFAULT_IMG}" class="prod-img" alt="${p.name}">
+          <div class="prod-name">
+            <b>${p.name}</b> <span class="u">(${p.unit})</span>
+            <div class="price-details">خرید: ${fmt(p.buyingPrice)} | فروخت: ${fmt(p.sellingPrice)}</div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">حذف</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderOrdersTab(){
+  return `
+    <div class="ledger-card">
+      <div class="section-title">تمام آرڈرز کا ریکارڈ</div>
+      ${state.orders.length === 0 ? '<div class="empty">کوئی آرڈر نہیں ملا۔</div>' : ''}
+      ${state.orders.map(o => `
+        <div class="order-card">
+          <div class="order-top">
+            <div class="shop-name">${o.shopName}</div>
+            <div class="badge ${o.status==='delivered'?'delivered':'pending'}">${o.status==='delivered'?'ڈلیورڈ':'پینڈنگ'}</div>
+          </div>
+          <div class="item-list">
+            ${o.items.map(it => `<div class="it"><span>${it.name} × ${it.qty}</span><b>${fmt(it.price * it.qty)}</b></div>`).join('')}
+          </div>
+          <div class="order-total"><span>ٹوٹل</span><span class="amt">${fmt(o.total)}</span></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderSettingsTab(){
+  return `
+    <div class="ledger-card">
+      <div class="section-title">پاسورڈ (PIN) تبدیل کریں</div>
+      <input type="password" id="oldPin" placeholder="موجودہ پن">
+      <input type="password" id="newPin" placeholder="نیا پن">
+      <button class="btn btn-primary btn-block" onclick="updateOwnerPin()">پاسورڈ اپڈیٹ کریں</button>
+    </div>
+  `;
+}
+
+window.setSalesTimeframe = (t) => { state.salesTimeframe = t; render(); };
+window.setOwnerTab = (t) => { state.ownerTab = t; render(); };
+window.setRouteFilter = (routeId) => { state.selectedRouteFilter = routeId; render(); };
+
+window.changeQty = (pid, delta) => {
+  state.cart[pid] = Math.max(0, (state.cart[pid] || 0) + delta);
+  const qtyInput = document.getElementById(`qty_${pid}`);
+  if(qtyInput) qtyInput.value = state.cart[pid];
+  updateCartTotalDisplay();
+};
+
+window.setQty = (pid, val) => {
+  state.cart[pid] = Math.max(0, parseInt(val) || 0);
+  updateCartTotalDisplay();
+};
+
+function handleImageUpload(e, type){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    if(type === 'new'){
+      state.newProdBase64 = event.target.result;
+    }
+    render();
+  };
+  reader.readAsDataURL(file);
+}
+
+async function addSalesman(){
+  const name = document.getElementById('smName').value.trim();
+  const phone = document.getElementById('smPhone').value.trim();
+  const routeId = document.getElementById('smRoute').value;
+
+  if(!name) return showToast('نام درج کریں');
+  state.salesmen.push({ id: uid(), name, phone, routeId });
+  saveData('salesmen', state.salesmen);
+  showToast('سیلز مین شامل ہو گیا ✓');
+  render();
+}
+
+async function addRoute(nameInputId, scheduleInputId){
+  const name = document.getElementById(nameInputId).value.trim();
+  const schedule = document.getElementById(scheduleInputId).value.trim();
+
+  if(!name) return showToast('روٹ کا نام درج کریں');
+  state.routes.push({ id: uid(), name, schedule });
+  saveData('routes', state.routes);
+  showToast('روٹ شامل ہو گیا ✓');
+  render();
+}
+
+async function deleteRoute(id){
+  if(confirm('کیا آپ اس روٹ کو حذف کرنا چاہتے ہیں؟')){
+    state.routes = state.routes.filter(r => r.id !== id);
+    saveData('routes', state.routes);
+    showToast('روٹ حذف کر دیا گیا');
+    render();
+  }
+}
+
+async function addShopkeeper(nameId, phoneId, routeSelectId){
+  const name = document.getElementById(nameId).value.trim();
+  const phone = document.getElementById(phoneId).value.trim();
+  const routeId = document.getElementById(routeSelectId).value;
+
+  if(!name || !routeId) return showToast('نام اور روٹ منتخب کریں');
+
+  state.shopkeepers.push({ id: uid(), name, phone, routeId });
+  saveData('shopkeepers', state.shopkeepers);
+  showToast('دکاندار شامل کر لیا گیا ✓');
+  render();
+}
+
+async function deleteShopkeeper(id){
+  if(confirm('کیا آپ اس دکاندار کو حذف کرنا چاہتے ہیں؟')){
+    state.shopkeepers = state.shopkeepers.filter(s => s.id !== id);
+    saveData('shopkeepers', state.shopkeepers);
+    showToast('دکاندار حذف کر دیا گیا');
+    render();
+  }
+}
+
+async function addProduct(){
+  const name = document.getElementById('npName').value.trim();
+  const unit = document.getElementById('npUnit').value.trim();
+  const buyingPrice = Number(document.getElementById('npBuyingPrice').value) || 0;
+  const sellingPrice = Number(document.getElementById('npSellingPrice').value) || 0;
+  
+  if(!name) return showToast('نام درج کرنا ضروری ہے');
+  const newId = uid();
+  
+  state.products.push({ 
+    id: newId, name, unit: unit || 'پیس', buyingPrice, sellingPrice,
+    price: sellingPrice, image: state.newProdBase64 || DEFAULT_IMG
+  });
+
+  state.products = sortProductsAlphabetically(state.products);
+  saveData('products', state.products);
+  state.newProdBase64 = '';
+  showToast('پروڈکٹ شامل ہو گئی ✓');
+  render();
+}
+
+async function deleteProduct(id){
+  if(confirm('کیا آپ اس پروڈکٹ کو حذف کرنا چاہتے ہیں؟')){
+    state.products = state.products.filter(p => p.id !== id);
+    saveData('products', state.products);
+    showToast('پروڈکٹ حذف کر دی گئی');
+    render();
+  }
+}
+
+async function updateOwnerPin(){
+  const oldPin = document.getElementById('oldPin').value;
+  const newPin = document.getElementById('newPin').value.trim();
+
+  if(oldPin !== state.ownerPin){ showToast('موجودہ پاسورڈ غلط ہے!'); return; }
+  if(!newPin){ showToast('نیا پاسورڈ درج کریں'); return; }
+
+  state.ownerPin = newPin;
+  saveData('ownerPin', state.ownerPin);
+  showToast('پاسورڈ کامیابی سے تبدیل ہو گیا ✓');
+}
+
+loadAll();
 </script>
 </body>
 </html>
