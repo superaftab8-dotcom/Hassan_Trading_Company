@@ -97,7 +97,7 @@
 
 <script>
 // Updated Live Synchronized Google Web App URL
-const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwxR7dwInQRvWe8lEcKge5Bup1MKhxea1wfQsELJHbzdMwEwxCdH7eNHB_RLyKLyBSkUA/exec";
+const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw22Azpecchm4utmpidLheWf4__tploOuDPJHaoDGmDSJRHXPC0BPl8pUs1y8cfrwZNiw/exec";
   
 const defaultProductsList = [
   { "id": "1", "name": "Andy Red/Yellow", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
@@ -241,8 +241,7 @@ async function loadAll() {
   let sharedData = {};
   try {
     const response = await fetch(`${GOOGLE_SHEET_WEB_APP_URL}?action=getData`, {
-      method: "GET",
-      redirect: "follow"
+      method: "GET"
     });
 
     const rawText = await response.text();
@@ -301,8 +300,10 @@ async function saveData(key, val, shared=true){
   try {
     await fetch(GOOGLE_SHEET_WEB_APP_URL, {
       method: "POST",
-      body: JSON.stringify({ action: "saveData", key: key, data: val }),
-      redirect: "follow"
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({ action: "saveData", key: key, data: val })
     });
   } catch(e) {
     console.warn('Server sync error:', e);
@@ -335,8 +336,10 @@ async function sendOrderToGoogleSheets(orderData) {
 
       await fetch(GOOGLE_SHEET_WEB_APP_URL, {
         method: 'POST',
-        body: JSON.stringify(payload),
-        redirect: "follow"
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
       });
     }
   } catch(err) {
