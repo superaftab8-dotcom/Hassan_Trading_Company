@@ -241,29 +241,32 @@ function sortProductsAlphabetically(productsArray){
 async function loadAll() {
   let sharedData = {};
   try {
-    // redirect: "follow" add karna zaroori hai Google Apps Script redirects ke liye
     const response = await fetch(`${GOOGLE_SHEET_WEB_APP_URL}?action=getData`, {
       method: "GET",
       redirect: "follow"
     });
 
+    // Pehle raw text retrieve karein
+    const rawText = await response.text();
+
     if (response.ok) {
-      const text = await response.text(); // Pehle text me lein
       try {
-        sharedData = JSON.parse(text); // Phir JSON parse karein
-        console.log("Data loaded successfully:", sharedData);
-      } catch (e) {
-        console.error("JSON parse error! Apps Script ne JSON ke bajaye ye bheja:", text);
+        // Safe JSON parsing
+        sharedData = JSON.parse(rawText);
+        console.log("Data successfully loaded:", sharedData);
+      } catch (jsonErr) {
+        console.error("SyntaxError Avoided! Google Apps Script ne JSON ke bajaye HTML bheja hai.");
+        console.log("Google se mila raw output ye hai:", rawText);
       }
     } else {
-      console.error("HTTP Error Status:", response.status);
+      console.error("Server Error Status:", response.status);
     }
   } catch (error) {
-    console.error("Fetch request fail ho gayi:", error);
+    console.error("Fetch Request Failed:", error);
   }
   return sharedData;
 }
-  } catch(e) {
+  catch(e) {
     console.error('Shared data load failed', e);
   }
 
