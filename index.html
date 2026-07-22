@@ -266,7 +266,7 @@ async function loadAll() {
       return localValue === null ? fallback : JSON.parse(localValue);
     } catch(e) {
       return fallback;
-    }
+  
   };
 
   let loadedProducts = readSavedValue('products', []);
