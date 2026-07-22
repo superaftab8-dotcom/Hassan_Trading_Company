@@ -97,7 +97,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// Google Sheets Web App URL Integration
+// Correct Google Sheets Web App Exec URL (Live Production deployment)
 const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbywVXcytc3S0VUcs3DF_LuSSsmKZagm-YbjFjzvtGEBuHHPCbPg8xRJqH2CRfyHBP3rMQ/exec";
 
 const defaultProductsList = [
@@ -250,7 +250,9 @@ async function loadAll(){
   }
 
   const readSavedValue = (key, fallback) => {
-    if(Object.prototype.hasOwnProperty.call(sharedData, key)) return sharedData[key];
+    if(sharedData && Object.prototype.hasOwnProperty.call(sharedData, key) && sharedData[key] !== null && sharedData[key] !== undefined) {
+      return sharedData[key];
+    }
     try {
       const localValue = localStorage.getItem(key);
       return localValue === null ? fallback : JSON.parse(localValue);
@@ -259,9 +261,12 @@ async function loadAll(){
     }
   };
 
-  state.products = readSavedValue('products', defaultProductsList);
+  let loadedProducts = readSavedValue('products', defaultProductsList);
+  if (!loadedProducts || !Array.isArray(loadedProducts) || loadedProducts.length === 0) {
+    loadedProducts = defaultProductsList;
+  }
 
-  state.products = state.products.map(p => ({
+  state.products = loadedProducts.map(p => ({
     ...p,
     buyingPrice: p.buyingPrice ?? 0,
     sellingPrice: p.sellingPrice ?? (p.price || 0),
@@ -304,7 +309,7 @@ async function sendOrderToGoogleSheets(orderData) {
     const sm = state.salesmen.find(s => s.id === orderData.salesmanId);
     const rt = state.routes.find(r => r.id === orderData.routeId);
     
-    orderData.items.forEach(async (item) => {
+    for(const item of orderData.items) {
       const payload = {
         action: "saveOrder",
         date: new Date(orderData.createdAt).toLocaleString(),
@@ -327,7 +332,7 @@ async function sendOrderToGoogleSheets(orderData) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-    });
+    }
   } catch(err) {
     console.error("Google Sheets sync failed:", err);
   }
@@ -568,7 +573,6 @@ function renderShopView(){
 
 /* Salesman View */
 function renderSalesmanView(){
-  const selectedRouteObj = state.routes.find(r => r.id === state.selectedRouteFilter);
   const filteredShops = state.selectedRouteFilter === 'all' 
     ? state.shopkeepers 
     : state.shopkeepers.filter(s => s.routeId === state.selectedRouteFilter);
