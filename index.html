@@ -97,7 +97,7 @@
 
 <script>
 // Live Synchronized Google Web App URL
-const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycby--cAOnc0LXF9yA3VJLZVExvjinobjtilBFjranUanRHWhU9e3DxRyGqyNan1b7CvuFA/exec";
+const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzRDyOyvhnj2AN9U734Nss7VN1hV0o-zC37P-B41_W4qa3B3cR-VsnFFOKdm6YOsd_vZg/exec";
   
 const defaultProductsList = [
   { "id": "1", "name": "Andy Red/Yellow", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
@@ -237,25 +237,56 @@ function sortProductsAlphabetically(productsArray){
   return productsArray.sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
 }
 
-async function loadAll() {
-  let sharedData = {};
-  try {
-    const response = await fetch(`${GOOGLE_SHEET_WEB_APP_URL}?action=getData`, {
-      method: "GET",
-      redirect: "follow"
-    });
+async function saveData(key, val, shared=true){
+  localStorage.setItem(key, JSON.stringify(val));
+  if(!shared) return;
 
-    const rawText = await response.text();
-    if (response.ok) {
-      try {
-        sharedData = JSON.parse(rawText);
-      } catch (jsonErr) {
-        console.warn("Raw response parsing failed, fallback active.");
-      }
-    }
-  } catch (e) {
-    console.error('Shared data load failed', e);
+  try {
+    // text/plain کے ساتھ فارم انکوڈڈ یا سادہ پے لوڈ بھیجیں تاکہ CORS preflight کا مسئلہ نہ بنے
+    await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "saveData", key: key, data: val })
+    });
+  } catch(e) {
+    console.warn('Server sync error:', e);
   }
+}
+
+async function sendOrderToGoogleSheets(orderData) {
+  if (!GOOGLE_SHEET_WEB_APP_URL) return;
+  
+  try {
+    const sm = state.salesmen.find(s => s.id === orderData.salesmanId);
+    const rt = state.routes.find(r => r.id === orderData.routeId);
+    
+    for(const item of orderData.items) {
+      const payload = {
+        action: "saveOrder",
+        date: new Date(orderData.createdAt).toLocaleString(),
+        orderId: orderData.id,
+        shopName: orderData.shopName,
+        phone: orderData.phone || '',
+        route: rt ? rt.name : '',
+        salesman: sm ? sm.name : '',
+        productName: item.name,
+        quantity: item.qty,
+        unit: item.unit,
+        unitPrice: item.price,
+        totalPrice: item.price * item.qty,
+        status: orderData.status
+      };
+
+      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+    }
+  } catch(err) {
+    console.error("Google Sheets sync failed:", err);
+  }
+}
 
   const readSavedValue = (key, fallback) => {
     if(sharedData && Object.prototype.hasOwnProperty.call(sharedData, key) && sharedData[key] !== null && sharedData[key] !== undefined) {
