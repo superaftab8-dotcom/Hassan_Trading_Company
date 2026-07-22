@@ -67,7 +67,6 @@
   .badge{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
   .badge.pending{background:#FCEFD3;color:var(--mustard-dark);}
   .badge.delivered{background:#DDEEE2;color:var(--green-dark);}
-  .badge.fulfilled{background:#DDEEE2;color:var(--green-dark);}
   .item-list{font-size:14px;color:var(--ink-soft);margin:8px 0;line-height:1.8;}
   .item-list .it{display:flex;justify-content:space-between;align-items:center;}
   .item-list .it b{font-family:'JetBrains Mono',monospace;direction:ltr;}
@@ -97,111 +96,11 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// Updated Google Sheets Web App Exec URL
-const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfGrweskMuWKZQwLAMF8jlQt3DUb2xoGSpt9WbbKMVb-utWGqK4HczeUQg_IpRxtyLKg/exec";
+// Live Synchronized Google Web App URL
+const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx66M7kEZXp9RsuSQ6y2AT0CG7Bithbbvc2wUdm2HnbAl83tvAzmRoJcy-A20rc39Yntg/exec";
 
-const defaultProductsList = [
-  { "id": "1", "name": "Andy Red/Yellow", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "2", "name": "Baksua", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "3", "name": "Balichan", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "4", "name": "Blade 7 clock", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "5", "name": "Blade RK", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "6", "name": "Blade Tez", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "7", "name": "Blade Treat", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "8", "name": "Bleach 3D X", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "9", "name": "Bleach Fesh n Joy Haldi/ Peach", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "10", "name": "Bleach Parle", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "11", "name": "Boll Pen Piano Sky/Clipper", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "12", "name": "Brush Dr-John Bacha", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "13", "name": "Brush Dr-John Medium", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "14", "name": "Brush Medicare Bacha", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "15", "name": "Brush Medicare Medium/ MR Clean", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "16", "name": "Brush Potato Medium", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "17", "name": "Care Sabun", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "18", "name": "Cell Power Plus", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "19", "name": "Cell Toshiba", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "20", "name": "Cell Ultra /Crown", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "21", "name": "China Namak 10 wala", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "22", "name": "China Namak 20 wala", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "23", "name": "Colgate Regular", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "24", "name": "Colgate Regular", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "25", "name": "Copy", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "26", "name": "Copy", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "27", "name": "Copy", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "28", "name": "Cream Bleach Care/ Peach", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "29", "name": "Dasta / Ring Wala", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "30", "name": "Dasta / Ring Wala", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "31", "name": "Disposible Glass", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "32", "name": "Feedar Kidu", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "33", "name": "Feedar Mochiku", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "34", "name": "Garam Misala Pissa hua", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "35", "name": "Garam Misala Sabit Great", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "36", "name": "Gillet Blue 2", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "37", "name": "Gmsa Elfi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "38", "name": "Gubare Panda", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "39", "name": "Hair Color Reetha", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "40", "name": "Hair Color Samsol", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "41", "name": "Hair Color Wajee", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "42", "name": "Hair Remove Cream Care Pink", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "43", "name": "Hair Remove Cream Care Yellow", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "44", "name": "Hair Remove Cream Look Me", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "45", "name": "Ispaghol Hashmi", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "46", "name": "Ispaghol Power Plus", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "47", "name": "Joshanda Qarshi", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "48", "name": "Kaali Dori", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "49", "name": "Kali Mirch Pissi hui", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "50", "name": "Lastic Small/Medium", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "51", "name": "Letter", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "52", "name": "Letter Filler", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "53", "name": "Machine Oil Singer", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "54", "name": "Machis Kite /Tanga", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "55", "name": "Magic Depoxy Gmsa", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "56", "name": "Magic Depoxy Steel", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "57", "name": "Mask 2 ply", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "58", "name": "Mask 3 ply", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "59", "name": "Mehandi Al Jannat", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "60", "name": "Mehandi Al Saudia", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "61", "name": "Mehandi Ke Keshan", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "62", "name": "Mombatti", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "63", "name": "Nalki Shaheen", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "64", "name": "Nipple Care", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "65", "name": "Nipple Potato", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "66", "name": "Nipple Shield", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "67", "name": "Pak Sani Plaster Kapre wala", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "68", "name": "Palish Orignal Al-Noor Traders", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "69", "name": "Pamper Flexi", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "70", "name": "Pamper Flexi", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "71", "name": "Pamper Royal", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "72", "name": "Pamper Royal", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "73", "name": "Pocket Tissue Everday", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "74", "name": "Sabun Rex Fruti", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "75", "name": "Salution Tape", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "76", "name": "Samad Bond 100 Sale", "unit": "ٹیوب", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "77", "name": "Samad Bond 150 Sale", "unit": "ٹیوب", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "78", "name": "Shoe Brush Plastic", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "79", "name": "Shoe Brush Wooden", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "80", "name": "Sogo Thunder Jalebi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "81", "name": "Steel Subhi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "82", "name": "Steel Subhi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "83", "name": "Steel Subhi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "84", "name": "Steel Subhi", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "85", "name": "Sultan Tail Regular 125ML", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "86", "name": "Sultan Tail Regular 250ML", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "87", "name": "Sunny Plass Umbrella", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "88", "name": "Taizab", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "89", "name": "Tape Osaka", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "90", "name": "Tape Tuff", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "91", "name": "Tenis Ball Normal/CA /MM Copy", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "92", "name": "Tigher Poweder Botle", "unit": "بوتل", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "93", "name": "Tigher Poweder Sache", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "94", "name": "Tissue box", "unit": "ڈبہ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "95", "name": "Tissue Roll", "unit": "رول", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "96", "name": "Treat Hygiene Pouch", "unit": "پاؤچ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "97", "name": "Treat Trim", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "98", "name": "Treat Trim", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "99", "name": "Turkey Sabun", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
-  { "id": "100", "name": "Universal Safty box", "unit": "پیس", "buyingPrice": 0, "sellingPrice": 0, "image": "" }
-];
+// Default empty products list
+const defaultProductsList = [];
 
 let state = {
   view: 'shop',
@@ -261,10 +160,7 @@ async function loadAll(){
     }
   };
 
-  let loadedProducts = readSavedValue('products', defaultProductsList);
-  if (!loadedProducts || !Array.isArray(loadedProducts) || loadedProducts.length === 0) {
-    loadedProducts = defaultProductsList;
-  }
+  let loadedProducts = readSavedValue('products', []);
 
   state.products = loadedProducts.map(p => ({
     ...p,
@@ -528,7 +424,7 @@ function renderShopView(){
   `;
 
   if(state.products.length===0){
-    h += `<div class="ledger-card"><div class="empty">ابھی کوئی پروڈکٹ لسٹ موجود نہیں۔</div></div>`;
+    h += `<div class="ledger-card"><div class="empty">ابھی کوئی پروڈکٹ موجود نہیں۔ "مالک موڈ" سے پروڈکٹس ایڈ کریں۔</div></div>`;
     return h;
   }
 
@@ -621,6 +517,11 @@ function renderSalesmanView(){
       <input type="text" class="search-box" placeholder="🔍 پروڈکٹ تلاش کریں..." value="${state.searchProdQuery}" oninput="filterShopProducts(this.value)">
       <div id="shopProductsListContainer">
   `;
+
+  if(state.products.length===0){
+    h += `<div class="empty">ابھی کوئی پروڈکٹ موجود نہیں۔</div></div></div>`;
+    return h;
+  }
 
   state.products.forEach(p=>{
     const qty = state.cart[p.id] || 0;
@@ -1223,6 +1124,8 @@ function renderProductsTab(){
       <input type="text" class="search-box" placeholder="🔍 پروڈکٹ تلاش کریں..." value="${state.searchOwnerProdQuery}" oninput="filterOwnerProducts(this.value)">
       <div id="ownerProductsListContainer">
 
+      ${state.products.length === 0 ? '<div class="empty">ابھی کوئی پروڈکٹ ایڈ نہیں ہے۔ اوپر فارم سے ایڈ کریں۔</div>' : ''}
+
       ${state.products.map(p => {
         const isEditing = state.editingProductId === p.id;
         const bPrice = p.buyingPrice || 0;
@@ -1307,7 +1210,7 @@ function handleImageUpload(e, type){
   reader.readAsDataURL(file);
 }
 
-/* Orders Tab with Delivered Option and Salesman Filter */
+/* Orders Tab */
 function renderOrdersTab(){
   let displayOrders = state.orders;
   if(state.selectedSalesmanFilter !== 'all'){
