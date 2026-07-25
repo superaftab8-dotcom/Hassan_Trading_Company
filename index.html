@@ -89,49 +89,46 @@
   .preview-img{width:60px;height:60px;border-radius:8px;object-fit:cover;margin-top:6px;border:1px solid #CCC;}
   .export-btns{display:flex;gap:8px;margin-top:12px;}
   .cart-review-box{background:#F8F6EF;border:1.5px dashed var(--green);border-radius:10px;padding:12px;margin:12px 0;}
-  <div class="sync-badge" id="syncStatusBadge">
-  <span class="sync-dot"></span>
-  <span id="syncStatusText">Synced</span>
-</div>
+
   /* Live Sync Badge Styling */
-.sync-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.15);
-  color: var(--white);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  transition: all 0.3s ease;
-}
+  .sync-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition: all 0.3s ease;
+  }
 
-.sync-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #2ECC71; /* Synced / Online green */
-  box-shadow: 0 0 6px #2ECC71;
-}
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #2ECC71; /* Synced / Online green */
+    box-shadow: 0 0 6px #2ECC71;
+  }
 
-/* Animations for Sync States */
-.sync-badge.syncing .sync-dot {
-  background-color: #F39C12; /* Syncing orange */
-  box-shadow: 0 0 6px #F39C12;
-  animation: pulse 1s infinite alternate;
-}
+  /* Animations for Sync States */
+  .sync-badge.syncing .sync-dot {
+    background-color: #F39C12; /* Syncing orange */
+    box-shadow: 0 0 6px #F39C12;
+    animation: pulse 1s infinite alternate;
+  }
 
-.sync-badge.error .sync-dot {
-  background-color: #E74C3C; /* Error red */
-  box-shadow: 0 0 6px #E74C3C;
-}
+  .sync-badge.error .sync-dot {
+    background-color: #E74C3C; /* Error red */
+    box-shadow: 0 0 6px #E74C3C;
+  }
 
-@keyframes pulse {
-  0% { opacity: 0.3; transform: scale(0.8); }
-  100% { opacity: 1; transform: scale(1.1); }
-}
+  @keyframes pulse {
+    0% { opacity: 0.3; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1.1); }
+  }
 </style>
 </head>
 <body>
@@ -139,12 +136,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // Google Apps Script Web App URL yahan paste karein
+// Google Apps Script Web App URL yahan paste karein
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1eC_FWfej-U685YCWq-ntxtQZcW84YPjKlTNGSCDIYEa2MQ6-9ZH_cyovSIGuCUdWjA/exec";
 
 // Data load karne ke liye
 async function loadDataFromSheet() {
-  if (!SCRIPT_URL || SCRIPT_URL === "https://script.google.com/macros/s/AKfycby1eC_FWfej-U685YCWq-ntxtQZcW84YPjKlTNGSCDIYEa2MQ6-9ZH_cyovSIGuCUdWjA/exec") return;
+  if (!SCRIPT_URL) return;
   try {
     const res = await fetch(SCRIPT_URL + "?action=getData");
     const data = await res.json();
@@ -162,28 +159,13 @@ async function loadDataFromSheet() {
   }
 }
 
-// Data Google Sheet mein save/sync karne ke liye
-async function saveDataToSheet() {
-  if (!SCRIPT_URL || SCRIPT_URL === "https://script.google.com/macros/s/AKfycby1eC_FWfej-U685YCWq-ntxtQZcW84YPjKlTNGSCDIYEa2MQ6-9ZH_cyovSIGuCUdWjA/exec") return;
-  try {
-    await fetch(SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(state)
-    });
-    showToast('Data Sheet mein sync ho gaya ✓');
-  } catch (err) {
-    console.error("Sheet save error:", err);
-  }
-  // Sync Status update karne ka function
+// Sync Status update karne ka function
 function setSyncStatus(status, text) {
   const badge = document.getElementById('syncStatusBadge');
   const statusText = document.getElementById('syncStatusText');
   
   if (!badge || !statusText) return;
   
-  // Pehle saari Purani classes remove karein
   badge.classList.remove('syncing', 'error');
   
   if (status === 'syncing') {
@@ -193,15 +175,14 @@ function setSyncStatus(status, text) {
     badge.classList.add('error');
     statusText.textContent = text || 'Sync Error';
   } else {
-    // Default: 'synced' / Live
     statusText.textContent = text || 'Live Sync';
   }
-  async function saveDataToSheet() {
-  if (!SCRIPT_URL || SCRIPT_URL === "YOUR_DEPLOYED_WEB_APP_URL_HERE") return;
-  
-  // 1. Syncing state active karein
+}
+
+// Data Google Sheet mein save/sync karne ke liye
+async function saveDataToSheet() {
+  if (!SCRIPT_URL) return;
   setSyncStatus('syncing', 'Saving to Sheet...');
-  
   try {
     await fetch(SCRIPT_URL, {
       method: "POST",
@@ -209,16 +190,14 @@ function setSyncStatus(status, text) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(state)
     });
-    
-    // 2. Success hone par Synced status set karein
     setSyncStatus('synced', 'Live Sync');
     showToast('Data Sheet mein sync ho gaya ✓');
   } catch (err) {
     console.error("Sheet save error:", err);
-    // 3. Error aane par Error status set karein
     setSyncStatus('error', 'Sync Failed');
   }
 }
+
 const defaultProductsList = [
   { "id": "1", "name": "Andy Red/Yellow", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
   { "id": "2", "name": "Baksua", "unit": "پیکٹ", "buyingPrice": 0, "sellingPrice": 0, "image": "" },
@@ -360,17 +339,10 @@ function sortProductsAlphabetically(productsArray){
 async function loadAll() {
   let sharedData = {};
   try {
-    const response = await fetch(`${GOOGLE_SHEET_WEB_APP_URL}?action=getData`, {
-      method: "GET"
-    });
-
+    const response = await fetch(`${SCRIPT_URL}?action=getData`, { method: "GET" });
     const rawText = await response.text();
     if (response.ok) {
-      try {
-        sharedData = JSON.parse(rawText);
-      } catch (jsonErr) {
-        console.warn("Raw response parsing failed, fallback active.");
-      }
+      try { sharedData = JSON.parse(rawText); } catch (jsonErr) { console.warn("Fallback active."); }
     }
   } catch (e) {
     console.error('Shared data load failed', e);
@@ -401,7 +373,6 @@ async function loadAll() {
   }));
   
   state.products = sortProductsAlphabetically(state.products);
-  
   state.orders = readSavedValue('orders', []);
   state.shopkeepers = readSavedValue('shopkeepers', []);
   state.routes = readSavedValue('routes', []);
@@ -418,11 +389,9 @@ async function saveData(key, val, shared=true){
   if(!shared) return;
 
   try {
-    await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+    await fetch(SCRIPT_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ action: "saveData", key: key, data: val })
     });
   } catch(e) {
@@ -431,8 +400,7 @@ async function saveData(key, val, shared=true){
 }
 
 async function sendOrderToGoogleSheets(orderData) {
-  if (!GOOGLE_SHEET_WEB_APP_URL) return;
-  
+  if (!SCRIPT_URL) return;
   try {
     const sm = state.salesmen.find(s => s.id === orderData.salesmanId);
     const rt = state.routes.find(r => r.id === orderData.routeId);
@@ -454,11 +422,9 @@ async function sendOrderToGoogleSheets(orderData) {
         status: orderData.status
       };
 
-      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+      await fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload)
       });
     }
@@ -556,7 +522,13 @@ function render(){
 
   let html = `
     <div class="signboard">
-      <h1>حسن ٹریڈنگ کمپنی</h1>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h1>حسن ٹریڈنگ کمپنی</h1>
+        <div class="sync-badge" id="syncStatusBadge">
+          <span class="sync-dot"></span>
+          <span id="syncStatusText">Live Sync</span>
+        </div>
+      </div>
       <p>اپنا آرڈر بک کریں • مالکان اور سیلز مین کے لیے مکمل سسٹم</p>
     </div>
     <div class="tabs">
@@ -1640,5 +1612,6 @@ async function deleteProduct(id){
 }
 
 loadAll();
+</script>
 </body>
 </html>
