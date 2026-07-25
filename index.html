@@ -137,8 +137,26 @@
 
 <script>
 // Google Apps Script Web App URL yahan paste karein
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1eC_FWfej-U685YCWq-ntxtQZcW84YPjKlTNGSCDIYEa2MQ6-9ZH_cyovSIGuCUdWjA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVA2s1gUtDuk4LCEGe_6BZbrDjfy0oFY6aOuFuuCP2CKf3O8zwK9QGqnmNfZma5mFkHQ/exec";
 
+  // Data Google Sheet میں save/sync کرنے کے لیے
+async function saveDataToSheet() {
+  if (!SCRIPT_URL) return;
+  setSyncStatus('syncing', 'Saving to Sheet...');
+  try {
+    await fetch(SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(state)
+    });
+    setSyncStatus('synced', 'Live Sync');
+    showToast('Data Sheet میں sync ہو گیا ✓');
+  } catch (err) {
+    console.error("Sheet save error:", err);
+    setSyncStatus('error', 'Sync Failed');
+  }
+}
 // Data load karne ke liye
 async function loadDataFromSheet() {
   if (!SCRIPT_URL) return;
